@@ -20,6 +20,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -62,6 +63,9 @@ export function DataTable<TData, TValue>({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [activeFilters, setActiveFilters] = React.useState<
+    Record<string, string | null>
+  >({});
 
   const table = useReactTable({
     data,
@@ -83,6 +87,35 @@ export function DataTable<TData, TValue>({
       globalFilter,
     },
   });
+
+  const handleFilterChange = (column: string, value: string | null) => {
+    const isCurrentlyActive = activeFilters[column] === value;
+
+    if (isCurrentlyActive) {
+      // Remove filter if it's already active
+      const tableColumn = table.getColumn(column);
+      if (tableColumn) {
+        tableColumn.setFilterValue(undefined);
+      }
+
+      setActiveFilters((prev) => {
+        const newFilters = { ...prev };
+        delete newFilters[column];
+        return newFilters;
+      });
+    } else {
+      // Set new filter
+      const tableColumn = table.getColumn(column);
+      if (tableColumn) {
+        tableColumn.setFilterValue(value);
+      }
+
+      setActiveFilters((prev) => ({
+        ...prev,
+        [column]: value,
+      }));
+    }
+  };
 
   return (
     <div className="w-full">
@@ -112,16 +145,17 @@ export function DataTable<TData, TValue>({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       {filter.options.map((option) => (
-                        <DropdownMenuItem
+                        <DropdownMenuCheckboxItem
                           key={option.label}
-                          onClick={() =>
-                            table
-                              .getColumn(filter.column)
-                              ?.setFilterValue(option.value ?? "")
+                          checked={
+                            activeFilters[filter.column] === option.value
+                          }
+                          onCheckedChange={() =>
+                            handleFilterChange(filter.column, option.value)
                           }
                         >
                           {option.label}
-                        </DropdownMenuItem>
+                        </DropdownMenuCheckboxItem>
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
