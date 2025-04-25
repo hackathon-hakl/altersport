@@ -1,19 +1,40 @@
 import * as React from "react";
-
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "./button";
 import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
 
-const Table = React.forwardRef<
-  HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto rounded-lg bg-[#131B15] p-3">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
-      {...props}
-    />
-  </div>
-));
+interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
+  filterComponent?: React.ReactNode;
+}
+
+const Table = React.forwardRef<HTMLTableElement, TableProps>(
+  ({ className, filterComponent, children, ...props }, ref) => (
+    <div className="relative w-full overflow-auto rounded-lg bg-white p-3">
+      {filterComponent && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {filterComponent}
+        </div>
+      )}
+
+      <table
+        ref={ref}
+        className={cn("w-full caption-bottom rounded-sm text-sm", className)}
+        {...props}
+      >
+        {children}
+      </table>
+    </div>
+  ),
+);
 Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<
@@ -51,7 +72,7 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "data-[state=selected]:bg-muted transition-colors hover:bg-[#1A231D]",
+      "data-[state=selected]:bg-muted hover:bg-accent transition-colors",
       className,
     )}
     {...props}
@@ -66,7 +87,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-12 px-3 text-left align-middle font-medium text-[#CBFEAF] [&:has([role=checkbox])]:w-px [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-0.5",
+      "h-12 px-3 text-left align-middle font-medium text-[#1C5100] [&:has([role=checkbox])]:w-px [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-0.5",
       className,
     )}
     {...props}
@@ -81,7 +102,7 @@ const TableCell = React.forwardRef<
   <td
     ref={ref}
     className={cn(
-      "border-t border-[#464D57] p-3 align-middle text-[#D7DDE4] [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-0.5",
+      "border-t border-[#C0C7D1] p-3 align-middle text-black [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-0.5",
       className,
     )}
     {...props}

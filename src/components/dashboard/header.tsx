@@ -9,8 +9,8 @@ type HeaderProps = {
 const Header = ({ title, buttonText, buttonIcon }: HeaderProps) => {
   return (
     <div className="flex items-center justify-between py-7">
-      <h1 className="text-2xl font-bold text-[#D7DDE4]">{title}</h1>
-      <Button size={"lg"} className="bg-[#1B7A07] text-white">
+      <h1 className="text-2xl font-bold text-black">{title}</h1>
+      <Button size={"lg"} className="bg-[#BBFA01] text-black">
         {buttonIcon}
         {buttonText}
       </Button>

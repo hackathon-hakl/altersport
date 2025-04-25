@@ -13,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Search } from "lucide-react";
+import { ChevronDown, EllipsisVerticalIcon, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -161,10 +161,10 @@ export const columns: ColumnDef<League>[] = [
       return (
         <Badge
           variant={"status"}
-          className={`${status === "Aktivno" ? "bg-[#bce0b833]" : "bg-[#ff747633]"}`}
+          className={`${status === "Aktivno" ? "bg-[#5dcc4e33]" : "bg-[#ff646633]"}`}
         >
           <div
-            className={`size-1.5 rounded-full ${status === "Aktivno" ? "bg-[#0DC44A]" : "bg-[#C40D10]"}`}
+            className={`size-1.5 rounded-full ${status === "Aktivno" ? "bg-[#0D8C37]" : "bg-[#C40D10]"}`}
           />
           <span className="text-sm font-normal">{status}</span>
         </Badge>
@@ -182,11 +182,10 @@ export const columns: ColumnDef<League>[] = [
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
               <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
+              <EllipsisVerticalIcon className="size-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Akcije</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(league.id)}
             >
@@ -235,138 +234,147 @@ export function DataTableDemo() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between gap-4 py-4">
-        <div className="relative">
-          <Input
-            placeholder="Pretraži"
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="max-w-sm pr-10"
-          />
-          <Search className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-white" />
-        </div>
-        <div className="flex items-center space-x-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                Sport <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                onClick={() =>
-                  table.getColumn("sport")?.setFilterValue("Nogomet")
-                }
-              >
-                Nogomet
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  table.getColumn("sport")?.setFilterValue("Odbojka")
-                }
-              >
-                Odbojka
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  table.getColumn("sport")?.setFilterValue("Rukomet")
-                }
-              >
-                Rukomet
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => table.getColumn("sport")?.setFilterValue("")}
-              >
-                Svi sportovi
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                Datum <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Najnoviji</DropdownMenuItem>
-              <DropdownMenuItem>Najstariji</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                Status <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                onClick={() =>
-                  table.getColumn("status")?.setFilterValue("Aktivno")
-                }
-              >
-                Aktivno
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  table.getColumn("status")?.setFilterValue("Neaktivno")
-                }
-              >
-                Neaktivno
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => table.getColumn("status")?.setFilterValue("")}
-              >
-                Svi statusi
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                Vrsta lige <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                onClick={() =>
-                  table.getColumn("vrstaLige")?.setFilterValue("Privatna")
-                }
-              >
-                Privatna
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  table.getColumn("vrstaLige")?.setFilterValue("Službena")
-                }
-              >
-                Službena
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => table.getColumn("vrstaLige")?.setFilterValue("")}
-              >
-                Sve vrste
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                Organizator <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Ivan Kranjec</DropdownMenuItem>
-              <DropdownMenuItem>Svi organizatori</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
       <div className="rounded-md">
-        <Table>
+        <Table
+          filterComponent={
+            <div className="flex w-full items-center justify-between space-x-2">
+              <div className="relative">
+                <Input
+                  placeholder="Pretraži"
+                  value={globalFilter ?? ""}
+                  onChange={(event) => setGlobalFilter(event.target.value)}
+                  className="w-xs pr-10"
+                />
+                <Search className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-black" />
+              </div>
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      Sport <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        table.getColumn("sport")?.setFilterValue("Nogomet")
+                      }
+                    >
+                      Nogomet
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        table.getColumn("sport")?.setFilterValue("Odbojka")
+                      }
+                    >
+                      Odbojka
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        table.getColumn("sport")?.setFilterValue("Rukomet")
+                      }
+                    >
+                      Rukomet
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        table.getColumn("sport")?.setFilterValue("")
+                      }
+                    >
+                      Svi sportovi
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      Datum <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>Najnoviji</DropdownMenuItem>
+                    <DropdownMenuItem>Najstariji</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      Status <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        table.getColumn("status")?.setFilterValue("Aktivno")
+                      }
+                    >
+                      Aktivno
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        table.getColumn("status")?.setFilterValue("Neaktivno")
+                      }
+                    >
+                      Neaktivno
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        table.getColumn("status")?.setFilterValue("")
+                      }
+                    >
+                      Svi statusi
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      Vrsta lige <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        table.getColumn("vrstaLige")?.setFilterValue("Privatna")
+                      }
+                    >
+                      Privatna
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        table.getColumn("vrstaLige")?.setFilterValue("Službena")
+                      }
+                    >
+                      Službena
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        table.getColumn("vrstaLige")?.setFilterValue("")
+                      }
+                    >
+                      Sve vrste
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          }
+        >
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
