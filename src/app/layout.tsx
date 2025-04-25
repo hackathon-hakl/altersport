@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Inter } from "next/font/google";
+import { QueryProvider } from "@/providers/QueryProvider";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -19,7 +20,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        <QueryProvider>{children}</QueryProvider>
+      </body>
     </html>
   );
 }
