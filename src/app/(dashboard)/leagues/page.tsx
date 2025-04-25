@@ -117,127 +117,6 @@ const leagueData: League[] = [
   },
 ];
 
-const leagueColumns: ColumnDef<League>[] = [
-  {
-    accessorKey: "naziv",
-    header: "Naziv",
-    cell: ({ row }) => <div>{row.getValue("naziv")}</div>,
-  },
-  {
-    accessorKey: "sport",
-    header: "Sport",
-    cell: ({ row }) => <div>{row.getValue("sport")}</div>,
-  },
-  {
-    accessorKey: "vrstaLige",
-    header: "Vrsta lige",
-    cell: ({ row }) => <div>{row.getValue("vrstaLige")}</div>,
-  },
-  {
-    accessorKey: "brojTimova",
-    header: "Broj timova",
-    cell: ({ row }) => <div>{row.getValue("brojTimova")}</div>,
-  },
-  {
-    accessorKey: "organizator",
-    header: "Organizator",
-    cell: ({ row }) => <div>{row.getValue("organizator")}</div>,
-  },
-  {
-    accessorKey: "pocetak",
-    header: "Početak",
-    cell: ({ row }) => <div>{row.getValue("pocetak")}</div>,
-  },
-  {
-    accessorKey: "kraj",
-    header: "Kraj",
-    cell: ({ row }) => <div>{row.getValue("kraj")}</div>,
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-      return (
-        <Badge
-          variant={"status"}
-          className={`${status === "Aktivno" ? "bg-[#5dcc4e33]" : "bg-[#ff646633]"}`}
-        >
-          <div
-            className={`size-1.5 rounded-full ${status === "Aktivno" ? "bg-[#0D8C37]" : "bg-[#C40D10]"}`}
-          />
-          <span className="text-sm font-normal">{status}</span>
-        </Badge>
-      );
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const league = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <EllipsisVerticalIcon className="size-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(league.id)}
-            >
-              Kopiraj ID lige
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Pregled lige</DropdownMenuItem>
-            <DropdownMenuItem>Uredi ligu</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
-
-// Define the filter options for leagues
-const leagueFilterOptions: FilterOption[] = [
-  {
-    label: "Sport",
-    column: "sport",
-    options: [
-      { label: "Nogomet", value: "Nogomet" },
-      { label: "Odbojka", value: "Odbojka" },
-      { label: "Rukomet", value: "Rukomet" },
-    ],
-  },
-  {
-    label: "Status",
-    column: "status",
-    options: [
-      { label: "Aktivno", value: "Aktivno" },
-      { label: "Neaktivno", value: "Neaktivno" },
-    ],
-  },
-  {
-    label: "Vrsta lige",
-    column: "vrstaLige",
-    options: [
-      { label: "Privatna", value: "Privatna" },
-      { label: "Službena", value: "Službena" },
-    ],
-  },
-  {
-    label: "Datum",
-    column: "",
-    options: [
-      { label: "Najnoviji", value: "newest" },
-      { label: "Najstariji", value: "oldest" },
-    ],
-  },
-];
-
 // Form schema
 const leagueFormSchema = z.object({
   naziv: z.string().min(1, "Naziv je obavezan"),
@@ -254,6 +133,7 @@ const leagueFormSchema = z.object({
 type LeagueFormProps = {
   onSubmit: (data: LeagueFormData) => void;
   onCancel: () => void;
+  initialData?: League;
 };
 
 type LeagueFormData = {
@@ -267,16 +147,16 @@ type LeagueFormData = {
   status: "Aktivno" | "Neaktivno";
 };
 
-function LeagueForm({ onSubmit, onCancel }: LeagueFormProps) {
+function LeagueForm({ onSubmit, onCancel, initialData }: LeagueFormProps) {
   const [formData, setFormData] = useState<LeagueFormData>({
-    naziv: "",
-    sport: "",
-    vrstaLige: "",
-    brojTimova: "",
-    organizator: "",
-    pocetak: "",
-    kraj: "",
-    status: "Aktivno",
+    naziv: initialData?.naziv || "",
+    sport: initialData?.sport || "",
+    vrstaLige: initialData?.vrstaLige || "",
+    brojTimova: initialData ? String(initialData.brojTimova) : "",
+    organizator: initialData?.organizator || "",
+    pocetak: initialData?.pocetak || "",
+    kraj: initialData?.kraj || "",
+    status: initialData?.status || "Aktivno",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -430,11 +310,147 @@ function LeagueForm({ onSubmit, onCancel }: LeagueFormProps) {
 
 export default function Leagues() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [currentLeague, setCurrentLeague] = useState<League | null>(null);
 
   const handleCreateLeague = (data: LeagueFormData) => {
-    console.log(data);
+    console.log("Creating new league:", data);
     setDialogOpen(false);
   };
+
+  const handleEditLeague = (data: LeagueFormData) => {
+    console.log("Editing league:", currentLeague?.id, data);
+    setEditDialogOpen(false);
+    setCurrentLeague(null);
+  };
+
+  const openEditDialog = (league: League) => {
+    setCurrentLeague(league);
+    setEditDialogOpen(true);
+  };
+
+  const leagueColumns: ColumnDef<League>[] = [
+    {
+      accessorKey: "naziv",
+      header: "Naziv",
+      cell: ({ row }) => <div>{row.getValue("naziv")}</div>,
+    },
+    {
+      accessorKey: "sport",
+      header: "Sport",
+      cell: ({ row }) => <div>{row.getValue("sport")}</div>,
+    },
+    {
+      accessorKey: "vrstaLige",
+      header: "Vrsta lige",
+      cell: ({ row }) => <div>{row.getValue("vrstaLige")}</div>,
+    },
+    {
+      accessorKey: "brojTimova",
+      header: "Broj timova",
+      cell: ({ row }) => <div>{row.getValue("brojTimova")}</div>,
+    },
+    {
+      accessorKey: "organizator",
+      header: "Organizator",
+      cell: ({ row }) => <div>{row.getValue("organizator")}</div>,
+    },
+    {
+      accessorKey: "pocetak",
+      header: "Početak",
+      cell: ({ row }) => <div>{row.getValue("pocetak")}</div>,
+    },
+    {
+      accessorKey: "kraj",
+      header: "Kraj",
+      cell: ({ row }) => <div>{row.getValue("kraj")}</div>,
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+        return (
+          <Badge
+            variant={"status"}
+            className={`${status === "Aktivno" ? "bg-[#5dcc4e33]" : "bg-[#ff646633]"}`}
+          >
+            <div
+              className={`size-1.5 rounded-full ${status === "Aktivno" ? "bg-[#0D8C37]" : "bg-[#C40D10]"}`}
+            />
+            <span className="text-sm font-normal">{status}</span>
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const league = row.original;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <EllipsisVerticalIcon className="size-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => navigator.clipboard.writeText(league.id)}
+              >
+                Kopiraj ID lige
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Pregled lige</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openEditDialog(league)}>
+                Uredi ligu
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
+  // Define the filter options for leagues
+  const leagueFilterOptions: FilterOption[] = [
+    {
+      label: "Sport",
+      column: "sport",
+      options: [
+        { label: "Nogomet", value: "Nogomet" },
+        { label: "Odbojka", value: "Odbojka" },
+        { label: "Rukomet", value: "Rukomet" },
+      ],
+    },
+    {
+      label: "Status",
+      column: "status",
+      options: [
+        { label: "Aktivno", value: "Aktivno" },
+        { label: "Neaktivno", value: "Neaktivno" },
+      ],
+    },
+    {
+      label: "Vrsta lige",
+      column: "vrstaLige",
+      options: [
+        { label: "Privatna", value: "Privatna" },
+        { label: "Službena", value: "Službena" },
+      ],
+    },
+    {
+      label: "Datum",
+      column: "",
+      options: [
+        { label: "Najnoviji", value: "newest" },
+        { label: "Najstariji", value: "oldest" },
+      ],
+    },
+  ];
 
   return (
     <div>
@@ -457,6 +473,27 @@ export default function Leagues() {
             onSubmit={handleCreateLeague}
             onCancel={() => setDialogOpen(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Uredi ligu</DialogTitle>
+            <DialogDescription>
+              Uredite podatke za ligu. Kliknite spremi kada završite.
+            </DialogDescription>
+          </DialogHeader>
+          {currentLeague && (
+            <LeagueForm
+              initialData={currentLeague}
+              onSubmit={handleEditLeague}
+              onCancel={() => {
+                setEditDialogOpen(false);
+                setCurrentLeague(null);
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
