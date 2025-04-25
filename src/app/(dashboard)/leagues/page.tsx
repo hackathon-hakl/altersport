@@ -210,7 +210,6 @@ const leagueFilterOptions: FilterOption[] = [
       { label: "Nogomet", value: "Nogomet" },
       { label: "Odbojka", value: "Odbojka" },
       { label: "Rukomet", value: "Rukomet" },
-      { label: "Svi sportovi", value: null },
     ],
   },
   {
@@ -219,7 +218,6 @@ const leagueFilterOptions: FilterOption[] = [
     options: [
       { label: "Aktivno", value: "Aktivno" },
       { label: "Neaktivno", value: "Neaktivno" },
-      { label: "Svi statusi", value: null },
     ],
   },
   {
@@ -228,7 +226,6 @@ const leagueFilterOptions: FilterOption[] = [
     options: [
       { label: "Privatna", value: "Privatna" },
       { label: "Službena", value: "Službena" },
-      { label: "Sve vrste", value: null },
     ],
   },
   {
