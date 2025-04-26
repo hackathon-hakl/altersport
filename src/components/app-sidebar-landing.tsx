@@ -160,19 +160,32 @@ export function AppSidebarLanding({
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       ))
-                    ) : viewType === "league" &&
-                      filteredLeagues &&
-                      filteredLeagues.length > 0 ? (
-                      filteredLeagues.map((league) => (
-                        <SidebarMenuItem key={league.id}>
-                          <SidebarMenuButton asChild variant="landing">
-                            <a href={`/leagues/${league.id}`}>
-                              <Trophy size={20} />
-                              {league.name}
-                            </a>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))
+                    ) : viewType === "league" ? (
+                      <>
+                        <h2 className="mt-2 pl-1 text-lg font-semibold text-white">
+                          {selectedSport?.name || ""}
+                        </h2>
+                        {filteredLeagues && filteredLeagues.length > 0 ? (
+                          filteredLeagues.map((league) => (
+                            <SidebarMenuItem key={league.id}>
+                              <SidebarMenuButton asChild variant="landing">
+                                <a href={`/leagues/${league.id}`}>
+                                  <Trophy size={20} />
+                                  {league.name}
+                                </a>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          ))
+                        ) : (
+                          <SidebarMenuItem>
+                            <SidebarMenuButton variant="landing">
+                              <span className="text-white/60">
+                                Nema dostupnih liga
+                              </span>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )}
+                      </>
                     ) : (
                       <SidebarMenuItem>
                         <SidebarMenuButton variant="landing">
