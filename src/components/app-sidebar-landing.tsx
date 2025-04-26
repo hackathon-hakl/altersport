@@ -1,8 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
-import { ChevronRightIcon, Dumbbell } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  ChevronRightIcon,
+  Dumbbell,
+  Trophy,
+  ArrowLeftIcon,
+} from "lucide-react";
 import {
   IconBallAmericanFootball,
   IconChessQueen,
@@ -22,8 +27,12 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useSports } from "@/hooks/queries/useSports";
+import { useKategorijeBySport } from "@/hooks/queries/useKategorije";
 import SearchInput from "./landing-page/search-input";
 import FieldHockey from "./icons/FieldHockey";
+import { Button } from "./ui/button";
+import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
 // Function to get the appropriate icon based on sport's icon field
 const getSportIcon = (iconName: string) => {
@@ -45,16 +54,48 @@ const getSportIcon = (iconName: string) => {
   }
 };
 
+// Props for the AppSidebarLanding component
+interface AppSidebarLandingProps extends React.ComponentProps<typeof Sidebar> {
+  viewType?: "sport" | "league";
+  selectedSportId?: string;
+}
+
 export function AppSidebarLanding({
+  viewType = "sport",
+  selectedSportId,
   ...props
-}: React.ComponentProps<typeof Sidebar>) {
-  const { data: sports, isLoading } = useSports();
+}: AppSidebarLandingProps) {
+  const { data: sports, isLoading: sportsLoading } = useSports();
+  const { data: leagues, isLoading: leaguesLoading } =
+    useKategorijeBySport(selectedSportId);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSport, setSelectedSport] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  // Set selected sport when sportId changes
+  useEffect(() => {
+    if (selectedSportId && sports) {
+      const sport = sports.find((s) => s.id === selectedSportId);
+      if (sport) {
+        setSelectedSport({ id: sport.id, name: sport.name });
+      }
+    }
+  }, [selectedSportId, sports]);
 
   // Filter sports based on search query
   const filteredSports = sports?.filter((sport) =>
     sport.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  // Filter leagues based on search query
+  const filteredLeagues = leagues?.filter((league) =>
+    league.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  const isLoading = viewType === "sport" ? sportsLoading : leaguesLoading;
+  const items = viewType === "sport" ? filteredSports : filteredLeagues;
 
   return (
     <Sidebar {...props} innerClassName="bg-[#1B0E28]">
@@ -62,7 +103,7 @@ export function AppSidebarLanding({
         <h1 className="mt-6 text-2xl font-bold text-white">ALTERSPORT</h1>
       </SidebarHeader>
       <SidebarContent className="mt-3">
-        {/* Sports Navigation */}
+        {/* Leagues/Sports Navigation */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -71,22 +112,43 @@ export function AppSidebarLanding({
                   .fill(0)
                   .map((_, index) => (
                     <SidebarMenuItem key={`skeleton-${index}`}>
-                      X
                       <SidebarMenuButton variant="landing">
                         <div className="h-6 w-6 animate-pulse rounded-full bg-white/20" />
                         <div className="h-4 w-24 animate-pulse rounded bg-white/20" />
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))
-              ) : sports && sports.length > 0 ? (
+              ) : items && items.length > 0 ? (
                 <div className="flex flex-col gap-2">
                   <SearchInput
                     className="w-fit pr-7"
                     outerClassName="mb-2"
                     value={searchQuery}
                     onChange={setSearchQuery}
+                    placeholder={
+                      viewType === "sport"
+                        ? "Pretraži sportove..."
+                        : "Pretraži lige..."
+                    }
                   />
-                  {filteredSports && filteredSports.length > 0 ? (
+                  {viewType === "league" && (
+                    <div className="flex flex-col gap-2">
+                      <Link href="/home">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start py-4 text-white hover:bg-[#0E0C28] hover:text-white"
+                        >
+                          <ArrowLeftIcon className="size-4" />
+                          Natrag na sportove
+                        </Button>
+                      </Link>
+                      <Separator className="bg-white/50" />
+                    </div>
+                  )}
+                  {viewType === "sport" &&
+                  filteredSports &&
+                  filteredSports.length > 0 ? (
                     filteredSports.map((sport) => (
                       <SidebarMenuItem key={sport.id}>
                         <SidebarMenuButton asChild variant="landing">
@@ -97,11 +159,26 @@ export function AppSidebarLanding({
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))
+                  ) : viewType === "league" &&
+                    filteredLeagues &&
+                    filteredLeagues.length > 0 ? (
+                    filteredLeagues.map((league) => (
+                      <SidebarMenuItem key={league.id}>
+                        <SidebarMenuButton asChild variant="landing">
+                          <a href={`/leagues/${league.id}`}>
+                            <Trophy size={20} />
+                            {league.name}
+                          </a>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))
                   ) : (
                     <SidebarMenuItem>
                       <SidebarMenuButton variant="landing">
                         <span className="text-white/60">
-                          Nema rezultata pretrage
+                          {viewType === "sport"
+                            ? "Nema dostupnih sportova"
+                            : "Nema dostupnih liga"}
                         </span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -111,7 +188,9 @@ export function AppSidebarLanding({
                 <SidebarMenuItem>
                   <SidebarMenuButton variant="landing">
                     <span className="text-white/60">
-                      Nema dostupnih sportova
+                      {viewType === "sport"
+                        ? "Nema dostupnih sportova"
+                        : "Nema dostupnih liga"}
                     </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

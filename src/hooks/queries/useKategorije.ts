@@ -41,8 +41,28 @@ export function useKategorije() {
     {
       // You can customize options here
       staleTime: 5 * 60 * 1000, // 5 minutes
-    }
+    },
   );
+}
+
+/**
+ * Hook for fetching Kategorije (leagues) filtered by sport ID
+ */
+export function useKategorijeBySport(sportId?: string) {
+  const { data: allKategorije, isLoading, error } = useKategorije();
+
+  // If a sportId is provided, filter the leagues by sport
+  const filteredKategorije = sportId
+    ? allKategorije?.filter(
+        (kategorija) => kategorija.sport && kategorija.sport.includes(sportId),
+      )
+    : allKategorije;
+
+  return {
+    data: filteredKategorije,
+    isLoading,
+    error,
+  };
 }
 
 /**
@@ -50,15 +70,17 @@ export function useKategorije() {
  */
 export function useCreateKategorija() {
   const queryClient = useQueryClient();
-  
+
   return useMutation<KategorijaRecord, Error, CreateKategorijaData>(
     (data) => api.post(apiRoutes.airtable.kategorije, data),
     {
       onSuccess: () => {
         // Invalidate and refetch the kategorije list
-        queryClient.invalidateQueries({ queryKey: queryKeys.airtable.kategorije });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.airtable.kategorije,
+        });
       },
-    }
+    },
   );
 }
 
@@ -67,14 +89,16 @@ export function useCreateKategorija() {
  */
 export function useUpdateKategorija() {
   const queryClient = useQueryClient();
-  
+
   return useMutation<KategorijaRecord, Error, UpdateKategorijaData>(
     (data) => api.put(`${apiRoutes.airtable.kategorije}/${data.id}`, data),
     {
       onSuccess: () => {
         // Invalidate and refetch the kategorije list
-        queryClient.invalidateQueries({ queryKey: queryKeys.airtable.kategorije });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.airtable.kategorije,
+        });
       },
-    }
+    },
   );
-} 
+}

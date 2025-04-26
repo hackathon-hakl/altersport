@@ -18,6 +18,7 @@ import {
   useTeamsWithCoordinates,
   type TeamWithCoordinates,
 } from "@/hooks/queries/useTeamsWithCoordinates";
+import { useParams } from "next/navigation";
 
 // Modify location type to include teams data
 type Location = {
@@ -317,9 +318,12 @@ const useUserLocation = () => {
   return { userLocation, locationError, isLocating, requestLocation };
 };
 
-export default function MapsContainer() {
+export default function MapsLeagues() {
+  // Use the sport ID from the URL
+  const { id } = useParams();
+  const sportId = Array.isArray(id) ? id[0] : (id as string);
+
   // State management
-  const [selectedSport, setSelectedSport] = useState<string>("");
   const [selectedDistance, setSelectedDistance] = useState<string>("");
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [activeMarker, setActiveMarker] = useState<string | null>(null);
@@ -435,14 +439,14 @@ export default function MapsContainer() {
     };
   }, [locations, userLocation]);
 
-  // Filter locations based on selected sport ID and distance
+  // Filter locations based on sport ID from URL params and distance
   const filteredLocations = useMemo(() => {
     let filtered = locations;
 
-    // Filter by sport if a sport is selected
-    if (selectedSport) {
+    // Filter by sport if we have a sportId from URL
+    if (sportId) {
       filtered = filtered.filter((location) =>
-        location.sport.includes(selectedSport),
+        location.sport.includes(sportId),
       );
     }
 
@@ -462,7 +466,7 @@ export default function MapsContainer() {
     }
 
     return filtered;
-  }, [locations, selectedSport, selectedDistance, userLocation]);
+  }, [locations, sportId, selectedDistance, userLocation]);
 
   // Prepare distance options
   const distanceOptions = useMemo(
@@ -477,31 +481,17 @@ export default function MapsContainer() {
   );
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex h-full flex-col gap-5">
       <h2 className="text-2xl font-semibold text-white">Pretraži na karti</h2>
 
       <div className="flex flex-col gap-5 rounded-md bg-[#0E0C28] p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FilterDropdown
-              label="Sport"
-              options={
-                isSportsLoading
-                  ? []
-                  : sports.map((sport) => ({
-                      id: sport.id,
-                      name: sport.name || sport.fields?.Name || "",
-                    }))
-              }
-              onSelect={setSelectedSport}
-              align="start"
-              selectedValue={selectedSport}
-            />
-            <FilterDropdown
               label="Udaljenost"
               options={distanceOptions}
               onSelect={setSelectedDistance}
-              align="end"
+              align="start"
               selectedValue={selectedDistance}
             />
           </div>
