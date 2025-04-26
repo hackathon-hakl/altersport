@@ -156,12 +156,14 @@ function Sidebar({
   variant = "sidebar",
   collapsible = "offcanvas",
   className,
+  innerClassName,
   children,
   ...props
 }: React.ComponentProps<"div"> & {
   side?: "left" | "right";
   variant?: "sidebar" | "floating" | "inset";
   collapsible?: "offcanvas" | "icon" | "none";
+  innerClassName?: string;
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
@@ -244,7 +246,10 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+          className={cn(
+            "bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm",
+            innerClassName,
+          )}
         >
           {children}
         </div>
@@ -482,6 +487,8 @@ const sidebarMenuButtonVariants = cva(
           "hover:bg-[#43EF2133] hover:text-white active:bg-[#43EF2133] active:text-white",
         outline:
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
+        landing:
+          "hover:bg-[#0E0C28] hover:text-white active:bg-0E0C28 active:text-white focus:text-white active:bg-[#0E0C28] data-[active=true]:bg-[#0E0C28]",
       },
       size: {
         default: "text-base",

@@ -7,6 +7,7 @@ interface Location {
   label: string;
   imageUrl: string;
   sport: string;
+  address: string;
   position: { lat: number; lng: number };
 }
 
@@ -14,22 +15,18 @@ interface MapLocationCardProps {
   location: Location;
   favorite: boolean;
   handleToggleFavorite: () => void;
-  onClose: () => void;
 }
 
 export const MapLocationCard = ({
   location,
   favorite,
   handleToggleFavorite,
-  onClose,
 }: MapLocationCardProps) => {
-  // Hardcoded values that should eventually come from location object
-  const name = "Zagrebački plivački klub";
-  const address = "Kombolova ul. 4a, 10000, Zagreb";
+  const name = location.label;
+  const address = location.address;
   const mainImage =
     "https://zpk.hr/wp-content/uploads/2023/07/img_1_1690204871152.webp";
-  const logoImage =
-    "https://v5.airtableusercontent.com/v3/u/40/40/1745690400000/NNa-l6XTDS5Wqe_dP3HSpA/1bx4BKkKlC0aQ7MlloLR9JUE97jcw8hRctMPW0wP-_DoSFgaPvrB4Kf4bbRQRrT1arRmmzoVnbPPiprIyalDT2hyFAtjSroAeTKNE_P0nKJPLBx5N4NQq7l9vZbk2-wuwN8r4w4vYdxusiX7mlqBHg/imcCi_dqZVAICqhY2ZFkd-_76FYQdZsTch7T1gsq2oY";
+  const logoImage = location.imageUrl;
 
   return (
     <div className="absolute top-2 left-4 z-30">

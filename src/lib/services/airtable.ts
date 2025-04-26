@@ -5,7 +5,9 @@ import { env } from "@/env";
 import { formatDate } from "@/lib/utils";
 
 // Initialize Airtable
-const base = new Airtable({ apiKey: env.AIRTABLE_API_KEY }).base(env.AIRTABLE_BASE_ID);
+const base = new Airtable({ apiKey: env.AIRTABLE_API_KEY }).base(
+  env.AIRTABLE_BASE_ID,
+);
 
 export interface KategorijaRecord {
   id: string;
@@ -28,6 +30,7 @@ export interface KategorijaRecord {
 export interface SportRecord {
   id: string;
   name: string;
+  icon: string;
 }
 
 /**
@@ -35,24 +38,28 @@ export interface SportRecord {
  */
 export async function getKategorije(): Promise<KategorijaRecord[]> {
   try {
-    const records = await base('Kategorija')
+    const records = await base("Kategorija")
       .select({
-        view: "Grid view"
+        view: "Grid view",
       })
       .all();
-    
-    return records.map(record => {
+
+    return records.map((record) => {
       return {
         id: record.id,
-        name: record.get('Name') as string,
-        sport: record.get('Sport') as string[],
-        notes: record.get('Notes') as string,
-        assignee: record.get('Assignee') as { id: string; email: string; name: string; },
-        status: record.get('Status') as string,
-        vrstaLige: record.get('LeagueType') as string,
-        teams: record.get('Momčadi') as string[],
-        startdate: formatDate(record.get('StartDate') as string),
-        enddate: formatDate(record.get('EndDate') as string),
+        name: record.get("Name") as string,
+        sport: record.get("Sport") as string[],
+        notes: record.get("Notes") as string,
+        assignee: record.get("Assignee") as {
+          id: string;
+          email: string;
+          name: string;
+        },
+        status: record.get("Status") as string,
+        vrstaLige: record.get("LeagueType") as string,
+        teams: record.get("Momčadi") as string[],
+        startdate: formatDate(record.get("StartDate") as string),
+        enddate: formatDate(record.get("EndDate") as string),
       };
     });
   } catch (error) {
@@ -66,11 +73,12 @@ export async function getKategorije(): Promise<KategorijaRecord[]> {
  */
 export async function getSport(id: string): Promise<SportRecord> {
   try {
-    const record = await base('Sport').find(id);
-    
+    const record = await base("Sport").find(id);
+
     return {
       id: record.id,
-      name: record.get('Sport Name') as string,
+      name: record.get("Sport Name") as string,
+      icon: record.get("Icons") as string,
     };
   } catch (error) {
     console.error("Error fetching Sport from Airtable:", error);
@@ -83,16 +91,17 @@ export async function getSport(id: string): Promise<SportRecord> {
  */
 export async function getSports(): Promise<SportRecord[]> {
   try {
-    const records = await base('Sport')
+    const records = await base("Sport")
       .select({
-        view: "Grid view"
+        view: "Grid view",
       })
       .all();
-    
-    return records.map(record => {
+
+    return records.map((record) => {
       return {
         id: record.id,
-        name: record.get('Sport Name') as string,
+        name: record.get("Sport Name") as string,
+        icon: record.get("Icons") as string,
       };
     });
   } catch (error) {
@@ -115,28 +124,32 @@ export async function createKategorija(data: {
   enddate: string;
 }): Promise<KategorijaRecord> {
   try {
-    const record = await base('Kategorija').create({
-      "Name": data.name,
-      "Sport": data.sport,
-      "Notes": data.notes || "",
-      "Assignee": data.assignee,
-      "Status": data.status,
-      "LeagueType": data.vrstaLige,
-      "StartDate": data.startdate,
-      "EndDate": data.enddate,
+    const record = await base("Kategorija").create({
+      Name: data.name,
+      Sport: data.sport,
+      Notes: data.notes || "",
+      Assignee: data.assignee,
+      Status: data.status,
+      LeagueType: data.vrstaLige,
+      StartDate: data.startdate,
+      EndDate: data.enddate,
     });
-    
+
     return {
       id: record.id,
-      name: record.get('Name') as string,
-      sport: record.get('Sport') as string[],
-      notes: record.get('Notes') as string,
-      assignee: record.get('Assignee') as { id: string; email: string; name: string; },
-      status: record.get('Status') as string,
-      vrstaLige: record.get('LeagueType') as string,
-      teams: record.get('Momčadi') as string[] || [],
-      startdate: formatDate(record.get('StartDate') as string),
-      enddate: formatDate(record.get('EndDate') as string),
+      name: record.get("Name") as string,
+      sport: record.get("Sport") as string[],
+      notes: record.get("Notes") as string,
+      assignee: record.get("Assignee") as {
+        id: string;
+        email: string;
+        name: string;
+      },
+      status: record.get("Status") as string,
+      vrstaLige: record.get("LeagueType") as string,
+      teams: (record.get("Momčadi") as string[]) || [],
+      startdate: formatDate(record.get("StartDate") as string),
+      enddate: formatDate(record.get("EndDate") as string),
     };
   } catch (error) {
     console.error("Error creating Kategorija in Airtable:", error);
@@ -159,31 +172,35 @@ export async function updateKategorija(data: {
   enddate: string;
 }): Promise<KategorijaRecord> {
   try {
-    const record = await base('Kategorija').update(data.id, {
-      "Name": data.name,
-      "Sport": data.sport,
-      "Notes": data.notes || "",
-      "Assignee": data.assignee,
-      "Status": data.status,
-      "LeagueType": data.vrstaLige,
-      "StartDate": data.startdate,
-      "EndDate": data.enddate,
+    const record = await base("Kategorija").update(data.id, {
+      Name: data.name,
+      Sport: data.sport,
+      Notes: data.notes || "",
+      Assignee: data.assignee,
+      Status: data.status,
+      LeagueType: data.vrstaLige,
+      StartDate: data.startdate,
+      EndDate: data.enddate,
     });
-    
+
     return {
       id: record.id,
-      name: record.get('Name') as string,
-      sport: record.get('Sport') as string[],
-      notes: record.get('Notes') as string,
-      assignee: record.get('Assignee') as { id: string; email: string; name: string; },
-      status: record.get('Status') as string,
-      vrstaLige: record.get('LeagueType') as string,
-      teams: record.get('Momčadi') as string[] || [],
-      startdate: formatDate(record.get('StartDate') as string),
-      enddate: formatDate(record.get('EndDate') as string),
+      name: record.get("Name") as string,
+      sport: record.get("Sport") as string[],
+      notes: record.get("Notes") as string,
+      assignee: record.get("Assignee") as {
+        id: string;
+        email: string;
+        name: string;
+      },
+      status: record.get("Status") as string,
+      vrstaLige: record.get("LeagueType") as string,
+      teams: (record.get("Momčadi") as string[]) || [],
+      startdate: formatDate(record.get("StartDate") as string),
+      enddate: formatDate(record.get("EndDate") as string),
     };
   } catch (error) {
     console.error("Error updating Kategorija in Airtable:", error);
     throw new Error("Failed to update Kategorija");
   }
-} 
+}

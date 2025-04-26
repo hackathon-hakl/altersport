@@ -19,6 +19,7 @@ type Location = {
   id: number;
   position: { lat: number; lng: number };
   label: string;
+  address: string;
   imageUrl: string;
   sport: string;
 };
@@ -141,9 +142,10 @@ const LOCATIONS: Location[] = [
   {
     id: 1,
     position: MAP_CONFIG.defaultCenter,
-    label: "Fudbal tereni",
+    label: "Zagrebački plivački klub",
+    address: "Kombolova ul. 4a, 10000, Zagreb",
     imageUrl:
-      "https://v5.airtableusercontent.com/v3/u/40/40/1745683200000/LEhoSnctapn8bH26CxY9-w/h1O39u6fIS4SAUNODDt-T48TySrE2CmUTzHnxPAmd_gPytETvb3J3t3GvdPv_5E1dNKTfp-vu6wpoQ0yeDWe_ckzMaM0kEd0Y1l-DT437-Szmfkp0Z0hJI9cq60zcsVxJKP9UifeyYBuYDTJ8a1PCA/ZZb0r7phOQVEY4vBBfiqoZBjvPxx8M_SA4ytx8s6Z40",
+      "https://v5.airtableusercontent.com/v3/u/40/40/1745704800000/icCxbFi4mJD9Dcpxb8KLxg/bHlInV5_5kLk-xhtJEokSLoHDf3ZRXvJizXTFy6pj_reaTMSGxQOoEebSXf8pWTngb3nGU0G4YQp3LUNErw0tNR83_YC4sxmVvkbrVlwJggkzyvAJTI8shSg7bHVlK_vA5lbrvMoxB36_TaJTGBHqA/OcTbKYOvf-mKJI3C6KO7_z8JAILcLiNw3FMowyQGCTY",
     sport: "football",
   },
 ];
@@ -250,12 +252,6 @@ export default function MapsContainer() {
     );
   };
 
-  // Reset selection handlers
-  const handleCloseLocationCard = () => {
-    setSelectedLocation(null);
-    setActiveMarker(null);
-  };
-
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-2xl font-semibold text-white">Pretraži na karti</h2>
@@ -297,7 +293,6 @@ export default function MapsContainer() {
                     handleToggleFavorite={() =>
                       handleToggleFavorite(selectedLocation.id)
                     }
-                    onClose={handleCloseLocationCard}
                   />
                 </div>
               )}

@@ -11,6 +11,7 @@ interface SearchInputProps {
   bgColor?: string;
   borderColor?: string;
   placeholderTextColor?: string;
+  outerClassName?: string;
 }
 
 export default function SearchInput({
@@ -18,6 +19,7 @@ export default function SearchInput({
   value,
   onChange,
   className = "",
+  outerClassName = "",
   iconColor = "text-white",
   bgColor = "bg-[#966498]/10",
   borderColor = "border-white/30",
@@ -44,7 +46,7 @@ export default function SearchInput({
   };
 
   return (
-    <div className="relative">
+    <div className={`relative ${outerClassName}`}>
       <Search
         className={`absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 ${iconColor}`}
       />
