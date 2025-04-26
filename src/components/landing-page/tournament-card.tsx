@@ -19,7 +19,7 @@ export default function TournamentCard({
   location,
 }: TournamentCardProps) {
   return (
-    <div className="flex min-h-60 min-w-80 flex-col gap-4 rounded-2xl bg-[#0E0C28] p-4">
+    <div className="flex min-h-60 min-w-80 cursor-pointer flex-col gap-4 rounded-2xl bg-[#0E0C28] p-4">
       <div className="relative h-full w-full">
         <Image
           src={image}

@@ -481,7 +481,7 @@ export default function MapsLeagues() {
   );
 
   return (
-    <div className="flex h-full flex-col gap-5">
+    <div className="flex h-full w-full flex-col gap-5">
       <h2 className="text-2xl font-semibold text-white">Pretraži na karti</h2>
 
       <div className="flex flex-col gap-5 rounded-md bg-[#0E0C28] p-5">

@@ -17,7 +17,7 @@ export default function ClubCard({
   onFavoriteToggle,
 }: ClubCardProps) {
   return (
-    <div className="flex w-full items-center justify-between rounded-2xl bg-[#0E0C28] p-4 text-white">
+    <div className="flex w-full items-center justify-between gap-2 rounded-2xl bg-[#0E0C28] p-4 text-white">
       <div className="flex items-center gap-5">
         <div className="relative size-12">
           <Image
@@ -29,7 +29,7 @@ export default function ClubCard({
         </div>
         <div className="flex flex-col">
           <span className="text-lg font-semibold text-white">{name}</span>
-          <span className="text-base font-normal text-white/80">
+          <span className="text-base font-normal text-wrap text-white/80">
             {location}
           </span>
         </div>

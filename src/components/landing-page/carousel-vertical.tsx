@@ -2,22 +2,28 @@
 
 import { useState, useRef, useEffect } from "react";
 import ClubCard from "./club-card";
+import Loader from "@/components/ui/loader";
 
 interface ClubItem {
   name: string;
   location: string;
   logoUrl: string;
   isFavorite?: boolean;
+  sport?: string[];
 }
 
 interface CarouselVerticalProps {
   title?: string;
   items: ClubItem[];
+  sportId?: string;
+  isLoading?: boolean;
 }
 
 export default function CarouselVertical({
   title = "Preporučeni klubovi",
   items = [],
+  sportId,
+  isLoading = false,
 }: CarouselVerticalProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [canScrollUp, setCanScrollUp] = useState(false);
@@ -57,49 +63,12 @@ export default function CarouselVertical({
         currentRef.removeEventListener("scroll", checkScrollButtons);
       }
     };
-  }, []);
+  }, [items]);
 
-  // Default sample data if no items provided
-  const defaultItems: ClubItem[] = [
-    {
-      name: "NK Dinamo Zagreb",
-      location: "Zagreb",
-      logoUrl: "/clubs/dinamo.png",
-      isFavorite: true,
-    },
-    {
-      name: "GNK Dinamo",
-      location: "adresa",
-      logoUrl: "/clubs/dinamo.png",
-      isFavorite: false,
-    },
-    {
-      name: "KK Cibona",
-      location: "Zagreb",
-      logoUrl: "/clubs/cibona.png",
-      isFavorite: false,
-    },
-    {
-      name: "RK Zagreb",
-      location: "Zagreb",
-      logoUrl: "/clubs/rkzagreb.png",
-      isFavorite: false,
-    },
-    {
-      name: "Mladost",
-      location: "Zagreb",
-      logoUrl: "/clubs/mladost.png",
-      isFavorite: false,
-    },
-    {
-      name: "HAOK Mladost",
-      location: "Zagreb",
-      logoUrl: "/clubs/haokmladost.png",
-      isFavorite: false,
-    },
-  ];
-
-  const displayItems = items.length > 0 ? items : defaultItems;
+  // Filter items by sportId if provided
+  const displayItems = sportId
+    ? items.filter((item) => item.sport && item.sport.includes(sportId))
+    : items;
 
   return (
     <div className="flex w-full flex-col gap-6 overflow-y-hidden">
@@ -108,24 +77,36 @@ export default function CarouselVertical({
       </div>
 
       <div className="relative h-[670px] w-full overflow-hidden">
-        <div
-          ref={carouselRef}
-          className="no-scrollbar flex h-full flex-col gap-4 overflow-y-auto scroll-smooth pr-4"
-          style={{ width: "100%", maxWidth: "100%" }}
-        >
-          {displayItems.map((item, index) => (
-            <ClubCard
-              key={index}
-              name={item.name}
-              location={item.location}
-              logoUrl={item.logoUrl}
-              isFavorite={item.isFavorite}
-              onFavoriteToggle={() => {
-                // Handle favorite toggle logic here
-              }}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <Loader />
+          </div>
+        ) : displayItems.length === 0 ? (
+          <div className="flex h-full items-center justify-center">
+            <p className="text-white/70">
+              Nema dostupnih klubova za odabrani sport
+            </p>
+          </div>
+        ) : (
+          <div
+            ref={carouselRef}
+            className="no-scrollbar flex h-full flex-col gap-4 overflow-y-auto scroll-smooth pr-4"
+            style={{ width: "100%", maxWidth: "100%" }}
+          >
+            {displayItems.map((item, index) => (
+              <ClubCard
+                key={index}
+                name={item.name}
+                location={item.location}
+                logoUrl={item.logoUrl}
+                isFavorite={item.isFavorite}
+                onFavoriteToggle={() => {
+                  // Handle favorite toggle logic here
+                }}
+              />
+            ))}
+          </div>
+        )}
         <div
           className="pointer-events-none absolute bottom-0 left-0 h-24 w-full bg-gradient-to-t from-[#070314]/70 via-[#070314]/50 via-60% to-transparent transition-opacity duration-300"
           style={{ opacity: scrollPercentage >= 80 ? 0 : 1 }}
