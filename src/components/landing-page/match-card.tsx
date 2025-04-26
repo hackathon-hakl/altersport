@@ -62,7 +62,7 @@ export default function MatchCard({
   };
 
   return (
-    <div className="flex min-h-60 min-w-96 flex-col justify-between rounded-2xl bg-gradient-to-r from-[#0E0C28] via-[#0E0C28] via-50% to-[#B8252A]/20 p-4">
+    <div className="flex min-h-60 min-w-80 flex-col justify-between rounded-2xl bg-gradient-to-r from-[#0E0C28] via-[#0E0C28] via-50% to-[#B8252A]/20 p-4">
       <div className="flex items-center justify-between">
         <p className="text-white">{sport}</p>
         <Star

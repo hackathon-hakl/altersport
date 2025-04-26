@@ -9,6 +9,7 @@ const config = {
   images: {
     remotePatterns: [
       { hostname: "v5.airtableusercontent.com" },
+      { hostname: "zpk.hr" },
     ],
   },
 };

@@ -3,8 +3,19 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import MatchCard from "./match-card";
+import TournamentCard from "./tournament-card";
 
-export default function Carousel() {
+interface CarouselProps {
+  variant?: "match" | "tournament";
+  title?: string;
+  items: any[];
+}
+
+export default function Carousel({
+  variant = "match",
+  title = "Preporučeni događaji",
+  items = [],
+}: CarouselProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -61,25 +72,49 @@ export default function Carousel() {
     });
   };
 
-  // Sample data for demonstration with proper typing
-  const matches = [
-    { variant: "upcoming" as const },
-    { isFavorite: false, variant: "upcoming" as const },
-    { variant: "result" as const },
-    { variant: "result" as const },
-    { variant: "result" as const },
-    { variant: "result" as const },
-    { variant: "result" as const },
-    { variant: "result" as const },
-    { variant: "result" as const },
-  ];
+  // Default sample data if no items provided
+  const defaultItems =
+    variant === "match"
+      ? [
+          { variant: "upcoming" as const },
+          { isFavorite: false, variant: "upcoming" as const },
+          { variant: "result" as const },
+          { variant: "result" as const },
+          { variant: "result" as const },
+        ]
+      : [
+          {
+            image: "/natjecanja/maraton.png",
+            category: "Trčanje",
+            title: "Zagrebački maraton",
+            time: "18:30",
+            date: "11.9.2024",
+            location: "Trg bana Josipa Jelačića",
+          },
+          {
+            image: "/natjecanja/biciklizam.png",
+            category: "Biciklizam",
+            title: "Zagreb Tour",
+            time: "10:00",
+            date: "15.9.2024",
+            location: "Jarun",
+          },
+          {
+            image: "/natjecanja/plivanje.png",
+            category: "Plivanje",
+            title: "Plivački miting",
+            time: "16:00",
+            date: "20.9.2024",
+            location: "Mladost",
+          },
+        ];
+
+  const displayItems = items.length > 0 ? items : defaultItems;
 
   return (
     <div className="flex w-full flex-col gap-6 overflow-x-hidden">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold text-white">
-          Preporučeni događaji
-        </h2>
+        <h2 className="text-2xl font-semibold text-white">{title}</h2>
         <div className="flex gap-2">
           <button
             onClick={() => scrollCarousel("left")}
@@ -106,9 +141,13 @@ export default function Carousel() {
           className="no-scrollbar flex gap-6 overflow-x-auto scroll-smooth pb-4"
           style={{ width: "100%", maxWidth: "100%" }}
         >
-          {matches.map((matchProps, index) => (
-            <MatchCard key={index} {...matchProps} />
-          ))}
+          {displayItems.map((itemProps, index) =>
+            variant === "match" ? (
+              <MatchCard key={index} {...itemProps} />
+            ) : (
+              <TournamentCard key={index} {...itemProps} />
+            ),
+          )}
         </div>
         <div
           className="pointer-events-none absolute top-0 right-0 h-full w-24 bg-gradient-to-l from-[#070314]/70 via-[#070314]/50 via-60% to-transparent transition-opacity duration-300"

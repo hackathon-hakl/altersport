@@ -1,0 +1,53 @@
+import React from "react";
+import type { ReactNode } from "react";
+import { OverlayView } from "@react-google-maps/api";
+import Image from "next/image";
+
+export type CustomMarkerProps = {
+  position: google.maps.LatLngLiteral;
+  onClick?: () => void;
+  label?: string;
+  isActive?: boolean;
+  icon?: ReactNode;
+  imageUrl?: string;
+};
+
+export const CustomMarker: React.FC<CustomMarkerProps> = ({
+  position,
+  onClick,
+  label,
+  isActive = false,
+  icon,
+  imageUrl,
+}) => {
+  return (
+    <OverlayView
+      position={position}
+      mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+    >
+      <div className="cursor-pointer" onClick={onClick}>
+        <div
+          className={`bg-selected border-selected relative z-20 flex h-12 w-12 -translate-x-1/2 -translate-y-full transform items-center justify-center rounded-[8px] border-2 shadow-lg`}
+        >
+          <div className="border-t-selected absolute right-3 -bottom-4 z-[-1] h-0 w-0 border-t-[20px] border-r-[10px] border-l-[10px] border-r-transparent border-l-transparent" />
+
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={label || "Marker"}
+              className="h-full w-full rounded-[8px] object-cover"
+              width={48}
+              height={48}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <div className="h-4 w-4 rounded-full bg-gray-300" />
+            </div>
+          )}
+        </div>
+      </div>
+    </OverlayView>
+  );
+};
+
+export default CustomMarker;

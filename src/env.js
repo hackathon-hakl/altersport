@@ -7,11 +7,12 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
     server: {
-      AIRTABLE_API_KEY: z.string(),
-      AIRTABLE_BASE_ID: z.string(),
-      NODE_ENV: z
-        .enum(["development", "test", "production"])
-        .default("development"),
+    AIRTABLE_API_KEY: z.string(),
+    AIRTABLE_BASE_ID: z.string(),
+    GOOGLE_MAPS_API_KEY: z.string(),
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .default("development"),
   },
 
   /**
@@ -30,6 +31,7 @@ export const env = createEnv({
   runtimeEnv: {
     AIRTABLE_API_KEY: process.env.AIRTABLE_API_KEY,
     AIRTABLE_BASE_ID: process.env.AIRTABLE_BASE_ID,
+    GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     NODE_ENV: process.env.NODE_ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
