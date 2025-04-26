@@ -5,6 +5,7 @@ import ClubCard from "./club-card";
 import Loader from "@/components/ui/loader";
 
 interface ClubItem {
+  id?: string;
   name: string;
   location: string;
   logoUrl: string;
@@ -22,7 +23,7 @@ interface CarouselVerticalProps {
 export default function CarouselVertical({
   title = "Preporučeni klubovi",
   items = [],
-  sportId,
+  sportId = "",
   isLoading = false,
 }: CarouselVerticalProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -100,6 +101,8 @@ export default function CarouselVertical({
                 location={item.location}
                 logoUrl={item.logoUrl}
                 isFavorite={item.isFavorite}
+                sportId={sportId}
+                id={item.id || `${index}`}
                 onFavoriteToggle={() => {
                   // Handle favorite toggle logic here
                 }}

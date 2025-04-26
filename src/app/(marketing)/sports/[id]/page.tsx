@@ -22,6 +22,7 @@ export default function Sports({
     if (teams) {
       // Transform team data to match ClubItem format
       const formattedTeams = teams.map((team) => ({
+        id: team.id,
         name: team.name,
         location: team.address,
         logoUrl: team.logo?.[0]?.url || "/placeholder.png",
@@ -51,6 +52,7 @@ export default function Sports({
         <CarouselVertical
           title="Klubovi"
           items={clubItems}
+          sportId={sportId}
           isLoading={isTeamsLoading}
         />
         <MapsLeagues />
