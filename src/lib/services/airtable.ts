@@ -33,6 +33,35 @@ export interface SportRecord {
   icon: string;
 }
 
+export interface TeamRecord {
+  id: string;
+  name: string;
+  logo: {
+    id: string;
+    url: string;
+    filename: string;
+    size: number;
+    type: string;
+    width?: number;
+    height?: number;
+    thumbnails?: {
+      small?: {
+        url: string;
+        width: number;
+        height: number;
+      };
+      large?: {
+        url: string;
+        width: number;
+        height: number;
+      };
+    };
+  }[];
+  address: string;
+  website: string;
+  sport: string[];
+}
+
 /**
  * Fetch all Kategorije from Airtable
  */
@@ -202,5 +231,53 @@ export async function updateKategorija(data: {
   } catch (error) {
     console.error("Error updating Kategorija in Airtable:", error);
     throw new Error("Failed to update Kategorija");
+  }
+}
+
+/**
+ * Fetch a single Team record by ID from Airtable
+ */
+export async function getTeam(id: string): Promise<TeamRecord> {
+  try {
+    const record = await base("Momčadi").find(id);
+
+    return {
+      id: record.id,
+      name: record.get("Team Name") as string,
+      logo: record.get("Team Logo") as TeamRecord["logo"],
+      sport: record.get("Sport") as string[],
+      address: record.get("Address") as string,
+      website: record.get("Website") as string,
+    };
+  } catch (error) {
+    console.error("Error fetching Team from Airtable:", error);
+    throw new Error("Failed to fetch Team");
+  }
+}
+
+/**
+ * Fetch all Teams from Airtable
+ */
+export async function getTeams(): Promise<TeamRecord[]> {
+  try {
+    const records = await base("Momčadi")
+      .select({
+        view: "Grid view",
+      })
+      .all();
+
+    return records.map((record) => {
+      return {
+        id: record.id,
+        name: record.get("Team Name") as string,
+        logo: record.get("Team Logo") as TeamRecord["logo"],
+        sport: record.get("Sport") as string[],
+        address: record.get("Address") as string,
+        website: record.get("Website") as string,
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching Teams from Airtable:", error);
+    throw new Error("Failed to fetch Teams");
   }
 }

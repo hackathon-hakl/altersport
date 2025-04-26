@@ -9,19 +9,34 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import { CustomMarker } from "../ui/custom-marker";
 import MapLocationCard from "../ui/map-location-card";
 import SearchInput from "./search-input";
+import {
+  useTeamsWithCoordinates,
+  type TeamWithCoordinates,
+} from "@/hooks/queries/useTeamsWithCoordinates";
 
-// Define location type for better type safety
+// Modify location type to include teams data
 type Location = {
-  id: number;
+  id: string;
   position: { lat: number; lng: number };
   label: string;
   address: string;
-  imageUrl: string;
-  sport: string;
+  imageUrl?: string;
+  sport: string[];
+  website?: string;
+};
+
+// Define a type for Sport
+type Sport = {
+  id: string;
+  name: string;
+  fields?: {
+    Name: string;
+  };
 };
 
 // Map configuration constants
@@ -137,25 +152,28 @@ const MAP_CONFIG = {
   },
 };
 
-// Sample location data - would typically come from an API
-const LOCATIONS: Location[] = [
-  {
-    id: 1,
-    position: MAP_CONFIG.defaultCenter,
-    label: "Zagrebački plivački klub",
-    address: "Kombolova ul. 4a, 10000, Zagreb",
-    imageUrl:
-      "https://v5.airtableusercontent.com/v3/u/40/40/1745704800000/icCxbFi4mJD9Dcpxb8KLxg/bHlInV5_5kLk-xhtJEokSLoHDf3ZRXvJizXTFy6pj_reaTMSGxQOoEebSXf8pWTngb3nGU0G4YQp3LUNErw0tNR83_YC4sxmVvkbrVlwJggkzyvAJTI8shSg7bHVlK_vA5lbrvMoxB36_TaJTGBHqA/OcTbKYOvf-mKJI3C6KO7_z8JAILcLiNw3FMowyQGCTY",
-    sport: "football",
-  },
-];
+// Convert TeamWithCoordinates to Location
+const teamToLocation = (team: TeamWithCoordinates): Location | null => {
+  if (!team.coordinates) return null;
+
+  return {
+    id: team.id,
+    position: team.coordinates,
+    label: team.name,
+    address: team.address || "",
+    imageUrl: team.logo?.[0]?.url,
+    sport: team.sport,
+    website: team.website,
+  };
+};
 
 // Props type for FilterDropdown
 type FilterDropdownProps = {
   label: string;
-  options: string[];
+  options: { id: string; name: string }[];
   onSelect: (option: string) => void;
   align?: "center" | "start" | "end";
+  selectedValue?: string;
 };
 
 // Filter dropdown component for better organization
@@ -164,55 +182,107 @@ const FilterDropdown = ({
   options,
   onSelect,
   align = "center",
-}: FilterDropdownProps) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button
-        variant="outline"
-        className="rounded-full border-white/30 bg-transparent text-white shadow-none hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-0 focus-visible:outline-none"
-      >
-        {label}
-        <ChevronDownIcon className="size-5" color="white" />
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent
-      align={align}
-      className="border-white/30 bg-[#0E0C28] shadow-lg"
-    >
-      {options.map((option) => (
-        <DropdownMenuItem
-          key={option}
-          onClick={() => onSelect(option)}
-          className="text-white focus:bg-white/10 focus:text-white"
+  selectedValue,
+}: FilterDropdownProps) => {
+  // Find the selected sport name for display
+  const selectedName =
+    options.find((option) => option.id === selectedValue)?.name || label;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="rounded-full border-white/30 bg-transparent text-white shadow-none hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-0 focus-visible:outline-none"
         >
-          {option}
-        </DropdownMenuItem>
-      ))}
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
+          {selectedName}
+          <ChevronDownIcon className="size-5" color="white" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align={align}
+        className="border-white/30 bg-[#0E0C28] shadow-lg"
+      >
+        {options.map((option) => (
+          <DropdownMenuCheckboxItem
+            key={option.id}
+            checked={selectedValue === option.id}
+            onClick={() =>
+              onSelect(selectedValue === option.id ? "" : option.id)
+            }
+            className="text-white focus:bg-white/10 focus:text-white"
+          >
+            {option.name}
+          </DropdownMenuCheckboxItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+// Custom hook to fetch sports from API
+const useSports = () => {
+  const [sports, setSports] = useState<Sport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSports = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/airtable/sports");
+        if (!response.ok) {
+          throw new Error("Failed to fetch sports");
+        }
+        const data = await response.json();
+
+        // Keep the full sport objects
+        setSports(data);
+      } catch (error) {
+        console.error("Error fetching sports:", error);
+        setSports([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSports();
+  }, []);
+
+  return { sports, isLoading };
+};
 
 export default function MapsContainer() {
   // State management
-  const [selectedSport, setSelectedSport] = useState("Sport");
-  const [selectedDistance, setSelectedDistance] = useState("Udaljenost");
+  const [selectedSport, setSelectedSport] = useState<string>("");
+  const [selectedDistance, setSelectedDistance] = useState<string>("");
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [activeMarker, setActiveMarker] = useState<number | null>(null);
+  const [activeMarker, setActiveMarker] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null,
   );
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const cardRef = useRef<HTMLDivElement | null>(null);
+
+  // Fetch teams with coordinates
+  const { teams, isLoading: isTeamsLoading } = useTeamsWithCoordinates();
+
+  // Fetch sports from API
+  const { sports, isLoading: isSportsLoading } = useSports();
+
+  // Convert teams to locations
+  const locations = useMemo(() => {
+    if (!teams) return [];
+    return teams
+      .filter((team) => team.coordinates) // Only include teams with valid coordinates
+      .map((team) => teamToLocation(team))
+      .filter((location): location is Location => location !== null);
+  }, [teams]);
 
   // Google Maps API loading
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
   });
-
-  // Dropdown options
-  const sports = useMemo(() => ["Fudbal", "Košarka", "Tenis", "Odbojka"], []);
-  const distances = useMemo(() => ["1km", "5km", "10km", "20km", "50km"], []);
 
   // Map callbacks
   const onLoad = useCallback((map: google.maps.Map) => setMap(map), []);
@@ -232,25 +302,66 @@ export default function MapsContainer() {
   }, []);
 
   // Handle marker click
-  const handleMarkerClick = (markerId: number) => {
+  const handleMarkerClick = (markerId: string) => {
     if (markerId === activeMarker) {
       setActiveMarker(null);
       setSelectedLocation(null);
     } else {
       setActiveMarker(markerId);
-      const location = LOCATIONS.find((loc) => loc.id === markerId);
+      const location = locations.find((loc) => loc.id === markerId);
       setSelectedLocation(location || null);
     }
   };
 
   // Toggle location favorite status
-  const handleToggleFavorite = (locationId: number) => {
+  const handleToggleFavorite = (locationId: string) => {
     setFavorites((prev) =>
       prev.includes(locationId)
         ? prev.filter((id) => id !== locationId)
         : [...prev, locationId],
     );
   };
+
+  // Calculate default center from locations
+  const defaultCenter = useMemo(() => {
+    if (locations.length === 0) return MAP_CONFIG.defaultCenter;
+
+    // Calculate average of all coordinates
+    const sum = locations.reduce(
+      (acc, loc) => ({
+        lat: acc.lat + loc.position.lat,
+        lng: acc.lng + loc.position.lng,
+      }),
+      { lat: 0, lng: 0 },
+    );
+
+    return {
+      lat: sum.lat / locations.length,
+      lng: sum.lng / locations.length,
+    };
+  }, [locations]);
+
+  // Filter locations based on selected sport ID
+  const filteredLocations = useMemo(() => {
+    if (!selectedSport) return locations;
+
+    return locations.filter((location) =>
+      // Check if the location's sports array contains the selected sport ID
+      location.sport.includes(selectedSport),
+    );
+  }, [locations, selectedSport]);
+
+  // Prepare distance options
+  const distanceOptions = useMemo(
+    () => [
+      { id: "1km", name: "1km" },
+      { id: "5km", name: "5km" },
+      { id: "10km", name: "10km" },
+      { id: "20km", name: "20km" },
+      { id: "50km", name: "50km" },
+    ],
+    [],
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -260,16 +371,25 @@ export default function MapsContainer() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FilterDropdown
-              label={selectedSport}
-              options={sports}
+              label="Sport"
+              options={
+                isSportsLoading
+                  ? []
+                  : sports.map((sport) => ({
+                      id: sport.id,
+                      name: sport.name || sport.fields?.Name || "",
+                    }))
+              }
               onSelect={setSelectedSport}
               align="start"
+              selectedValue={selectedSport}
             />
             <FilterDropdown
-              label={selectedDistance}
-              options={distances}
+              label="Udaljenost"
+              options={distanceOptions}
               onSelect={setSelectedDistance}
               align="end"
+              selectedValue={selectedDistance}
             />
           </div>
           <SearchInput />
@@ -279,8 +399,8 @@ export default function MapsContainer() {
           {isLoaded ? (
             <GoogleMap
               mapContainerStyle={MAP_CONFIG.containerStyle}
-              center={MAP_CONFIG.defaultCenter}
-              zoom={12}
+              center={defaultCenter}
+              zoom={10}
               onLoad={onLoad}
               onUnmount={onUnmount}
               options={MAP_CONFIG.options}
@@ -297,20 +417,26 @@ export default function MapsContainer() {
                 </div>
               )}
 
-              {LOCATIONS.map((marker) => (
-                <CustomMarker
-                  key={marker.id}
-                  position={marker.position}
-                  label={marker.label}
-                  isActive={activeMarker === marker.id}
-                  onClick={() => handleMarkerClick(marker.id)}
-                  imageUrl={marker.imageUrl}
-                />
-              ))}
+              {filteredLocations.map((marker) => {
+                return (
+                  <CustomMarker
+                    key={marker.id}
+                    position={marker.position}
+                    label={marker.label}
+                    isActive={activeMarker === marker.id}
+                    onClick={() => handleMarkerClick(marker.id)}
+                    imageUrl={marker.imageUrl}
+                  />
+                );
+              })}
             </GoogleMap>
           ) : (
             <div className="flex h-[400px] w-full items-center justify-center rounded-md bg-gray-800">
-              <p className="text-white">Učitavanje karte...</p>
+              <p className="text-white">
+                {isTeamsLoading || isSportsLoading
+                  ? "Učitavanje podataka..."
+                  : "Učitavanje karte..."}
+              </p>
             </div>
           )}
         </div>

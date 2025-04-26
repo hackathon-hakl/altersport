@@ -1,14 +1,15 @@
 import { Globe, MapPin, Star, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-
+import Link from "next/link";
 interface Location {
-  id: number;
+  id: string;
   label: string;
-  imageUrl: string;
-  sport: string;
+  imageUrl?: string;
+  sport: string[];
   address: string;
   position: { lat: number; lng: number };
+  website?: string;
 }
 
 interface MapLocationCardProps {
@@ -24,12 +25,11 @@ export const MapLocationCard = ({
 }: MapLocationCardProps) => {
   const name = location.label;
   const address = location.address;
-  const mainImage =
-    "https://zpk.hr/wp-content/uploads/2023/07/img_1_1690204871152.webp";
   const logoImage = location.imageUrl;
+  const website = location.website;
 
   return (
-    <div className="absolute top-2 left-4 z-30">
+    <div className="absolute top-2 left-4 z-30 min-w-80">
       <div className="flex flex-col gap-6 rounded-md bg-[#13091B] p-4">
         <header className="flex flex-row items-center justify-between gap-16">
           <h3 className="text-xl font-bold text-white">{name}</h3>
@@ -45,26 +45,28 @@ export const MapLocationCard = ({
 
         <div className="relative h-48 w-full overflow-visible">
           <Image
-            src={mainImage}
+            src={"/placeholder.svg"}
             alt={name}
             fill
             className="rounded-sm object-cover"
           />
           <div className="absolute -bottom-10 left-6 z-10">
-            <Image
-              src={logoImage}
-              alt={name}
-              width={74}
-              height={74}
-              className="rounded-[6px] border-2 border-black"
-            />
+            {logoImage && (
+              <Image src={logoImage} alt={name} width={74} height={74} />
+            )}
           </div>
         </div>
 
         <div className="mt-8 mb-4 flex flex-col gap-2">
           <div className="flex flex-row items-center gap-2 text-sm text-white">
-            <Globe className="text-selected size-4" />
-            {name}
+            <Link
+              href={website || ""}
+              target="_blank"
+              className="flex flex-row items-center gap-2 underline underline-offset-4"
+            >
+              <Globe className="text-selected size-4" />
+              {website}
+            </Link>
           </div>
           <div className="flex flex-row items-center gap-2 text-sm text-white">
             <MapPin className="text-selected size-4" />

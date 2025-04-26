@@ -38,19 +38,13 @@ export const CustomMarker: React.FC<CustomMarkerProps> = ({
             }`}
           />
 
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={label || "Marker"}
-              className="h-full w-full rounded-[8px] object-cover"
-              width={48}
-              height={48}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <div className="h-4 w-4 rounded-full bg-gray-300" />
-            </div>
-          )}
+          <Image
+            src={imageUrl || "/placeholder.svg"}
+            alt={label || "Marker"}
+            className="h-full w-full rounded-[8px] object-cover"
+            width={48}
+            height={48}
+          />
         </div>
       </div>
     </OverlayView>

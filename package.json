@@ -50,6 +50,7 @@
     "react": "^19.0.0",
     "react-day-picker": "8.10.1",
     "react-dom": "^19.0.0",
+    "react-geocode": "^2.0.1",
     "tailwind-merge": "^3.2.0",
     "zod": "^3.24.2"
   },
