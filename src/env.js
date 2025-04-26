@@ -6,10 +6,12 @@ export const env = createEnv({
    * Specify your server-side environment variables schema here. This way you can ensure the app
    * isn't built with invalid env vars.
    */
-    server: {
+  server: {
     AIRTABLE_API_KEY: z.string(),
     AIRTABLE_BASE_ID: z.string(),
     GOOGLE_MAPS_API_KEY: z.string(),
+    API_URL: z.string(),
+    EXTERNAL_API_URL: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -32,6 +34,8 @@ export const env = createEnv({
     AIRTABLE_API_KEY: process.env.AIRTABLE_API_KEY,
     AIRTABLE_BASE_ID: process.env.AIRTABLE_BASE_ID,
     GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    API_URL: process.env.NEXT_PUBLIC_API_URL,
+    EXTERNAL_API_URL: process.env.NEXT_PUBLIC_EXTERNAL_API_URL,
     NODE_ENV: process.env.NODE_ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
