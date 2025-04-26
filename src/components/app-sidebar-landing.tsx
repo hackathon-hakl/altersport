@@ -118,7 +118,7 @@ export function AppSidebarLanding({
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))
-              ) : items && items.length > 0 ? (
+              ) : (
                 <div className="flex flex-col gap-2">
                   <SearchInput
                     className="w-fit pr-7"
@@ -146,32 +146,44 @@ export function AppSidebarLanding({
                       <Separator className="bg-white/50" />
                     </div>
                   )}
-                  {viewType === "sport" &&
-                  filteredSports &&
-                  filteredSports.length > 0 ? (
-                    filteredSports.map((sport) => (
-                      <SidebarMenuItem key={sport.id}>
-                        <SidebarMenuButton asChild variant="landing">
-                          <a href={`/sports/${sport.id}`}>
-                            {getSportIcon(sport.icon)}
-                            {sport.name}
-                          </a>
+                  {items && items.length > 0 ? (
+                    viewType === "sport" &&
+                    filteredSports &&
+                    filteredSports.length > 0 ? (
+                      filteredSports.map((sport) => (
+                        <SidebarMenuItem key={sport.id}>
+                          <SidebarMenuButton asChild variant="landing">
+                            <a href={`/sports/${sport.id}`}>
+                              {getSportIcon(sport.icon)}
+                              {sport.name}
+                            </a>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))
+                    ) : viewType === "league" &&
+                      filteredLeagues &&
+                      filteredLeagues.length > 0 ? (
+                      filteredLeagues.map((league) => (
+                        <SidebarMenuItem key={league.id}>
+                          <SidebarMenuButton asChild variant="landing">
+                            <a href={`/leagues/${league.id}`}>
+                              <Trophy size={20} />
+                              {league.name}
+                            </a>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))
+                    ) : (
+                      <SidebarMenuItem>
+                        <SidebarMenuButton variant="landing">
+                          <span className="text-white/60">
+                            {viewType === "sport"
+                              ? "Nema dostupnih sportova"
+                              : "Nema dostupnih liga"}
+                          </span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                    ))
-                  ) : viewType === "league" &&
-                    filteredLeagues &&
-                    filteredLeagues.length > 0 ? (
-                    filteredLeagues.map((league) => (
-                      <SidebarMenuItem key={league.id}>
-                        <SidebarMenuButton asChild variant="landing">
-                          <a href={`/leagues/${league.id}`}>
-                            <Trophy size={20} />
-                            {league.name}
-                          </a>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))
+                    )
                   ) : (
                     <SidebarMenuItem>
                       <SidebarMenuButton variant="landing">
@@ -184,16 +196,6 @@ export function AppSidebarLanding({
                     </SidebarMenuItem>
                   )}
                 </div>
-              ) : (
-                <SidebarMenuItem>
-                  <SidebarMenuButton variant="landing">
-                    <span className="text-white/60">
-                      {viewType === "sport"
-                        ? "Nema dostupnih sportova"
-                        : "Nema dostupnih liga"}
-                    </span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
