@@ -3,9 +3,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
+
 @theme {
-  --font-sans:
-    var(--font-inter), ui-sans-serif, system-ui, sans-serif,
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
@@ -46,6 +46,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-text-whiteish: var(--text-whiteish);
+  --color-cta: var(--cta);
+  --color-selected: var(--selected);
 }
 
 :root {
@@ -82,6 +84,8 @@
   --sidebar-border: oklch(0.12 0.0163 232.53);
   --sidebar-ring: oklch(0.708 0 0);
   --text-whiteish: oklch(0.97 0.0062 317.75);
+  --cta: oklch(0.52 0.1763 17.9);
+  --selected: oklch(0.72 0.1785 21.5);
 }
 
 .dark {
@@ -117,4 +121,10 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
   --text-whiteish: oklch(0.97 0.0062 317.75);
+  --cta: oklch(0.52 0.1763 17.9);
+  --selected: oklch(0.72 0.1785 21.5);
+}
+
+@utility no-scrollbar {
+  @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
 }
