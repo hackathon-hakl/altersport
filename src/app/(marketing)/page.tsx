@@ -1,6 +1,7 @@
 import Banner from "@/components/landing-page/banner";
 import Carousel from "@/components/landing-page/carousel";
 import MapsContainer from "@/components/landing-page/maps-container";
+import Header from "@/components/landing-page/header";
 
 export default function HomePage() {
   const matchItems = [
@@ -67,6 +68,7 @@ export default function HomePage() {
 
   return (
     <div className="flex w-full flex-col gap-10">
+      <Header />
       <Banner />
       <Carousel
         variant="match"

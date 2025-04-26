@@ -2,24 +2,65 @@ import { Search, X } from "lucide-react";
 import { useState } from "react";
 import { Input } from "../ui/input";
 
-export default function SearchInput() {
-  const [searchInput, setSearchInput] = useState("");
+interface SearchInputProps {
+  placeholder?: string;
+  value?: string;
+  onChange?: (value: string) => void;
+  className?: string;
+  iconColor?: string;
+  bgColor?: string;
+  borderColor?: string;
+  placeholderTextColor?: string;
+}
+
+export default function SearchInput({
+  placeholder = "Pretraži",
+  value,
+  onChange,
+  className = "",
+  iconColor = "text-white",
+  bgColor = "bg-[#966498]/10",
+  borderColor = "border-white/30",
+  placeholderTextColor = "placeholder:text-white/30",
+}: SearchInputProps) {
+  const [internalValue, setInternalValue] = useState("");
+
+  const searchValue = value !== undefined ? value : internalValue;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    if (onChange) {
+      onChange(newValue);
+    } else {
+      setInternalValue(newValue);
+    }
+  };
+
+  const clearSearch = () => {
+    if (onChange) {
+      onChange("");
+    } else {
+      setInternalValue("");
+    }
+  };
+
   return (
     <div className="relative">
-      <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-white" />
+      <Search
+        className={`absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 ${iconColor}`}
+      />
       <Input
-        placeholder="Pretraži"
-        className="w-xs rounded-full border-white/30 bg-[#966498]/10 pl-10 text-white placeholder:text-white/30"
-        value={searchInput}
-        onChange={(e) => setSearchInput(e.target.value)}
+        placeholder={placeholder}
+        className={`w-xs rounded-full ${borderColor} ${bgColor} pl-10 ${iconColor} ${placeholderTextColor} ${className}`}
+        value={searchValue}
+        onChange={handleChange}
       />
       <X
-        className={`absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 cursor-pointer text-white transition-opacity duration-300 ease-in-out ${
-          searchInput
+        className={`absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 cursor-pointer ${iconColor} transition-opacity duration-300 ease-in-out ${
+          searchValue
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
         }`}
-        onClick={() => setSearchInput("")}
+        onClick={clearSearch}
       />
     </div>
   );
