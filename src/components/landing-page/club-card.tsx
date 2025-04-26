@@ -28,7 +28,7 @@ export default function ClubCard({
   };
 
   return (
-    <Link href={`/sports/${sportId}/clubs/${id}`}>
+    <Link href={`/sports/${sportId}/club/${id}`}>
       <div className="flex w-full items-center justify-between gap-2 rounded-2xl bg-[#0E0C28] p-4 text-white">
         <div className="flex items-center gap-5">
           <div className="relative size-12">
