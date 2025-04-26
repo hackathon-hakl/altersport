@@ -58,16 +58,18 @@ export const MapLocationCard = ({
         </div>
 
         <div className="mt-8 mb-4 flex flex-col gap-2">
-          <div className="flex flex-row items-center gap-2 text-sm text-white">
-            <Link
-              href={website || ""}
-              target="_blank"
-              className="flex flex-row items-center gap-2 underline underline-offset-4"
-            >
-              <Globe className="text-selected size-4" />
-              {website}
-            </Link>
-          </div>
+          {website && (
+            <div className="flex flex-row items-center gap-2 text-sm text-white">
+              <Link
+                href={website || ""}
+                target="_blank"
+                className="flex flex-row items-center gap-2 underline underline-offset-4"
+              >
+                <Globe className="text-selected size-4" />
+                {website}
+              </Link>
+            </div>
+          )}
           <div className="flex flex-row items-center gap-2 text-sm text-white">
             <MapPin className="text-selected size-4" />
             {address}

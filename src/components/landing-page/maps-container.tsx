@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import { ChevronDownIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import {
@@ -167,6 +167,31 @@ const teamToLocation = (team: TeamWithCoordinates): Location | null => {
   };
 };
 
+// Function to calculate distance between two coordinates using Haversine formula
+const calculateDistance = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number => {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // Distance in km
+  return distance;
+};
+
+const deg2rad = (deg: number): number => {
+  return deg * (Math.PI / 180);
+};
+
 // Props type for FilterDropdown
 type FilterDropdownProps = {
   label: string;
@@ -251,6 +276,47 @@ const useSports = () => {
   return { sports, isLoading };
 };
 
+// Custom hook to handle user location
+const useUserLocation = () => {
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+
+  const requestLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolokacija nije podržana u vašem pregledniku.");
+      return;
+    }
+
+    setIsLocating(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setIsLocating(false);
+      },
+      (error) => {
+        setLocationError(
+          error.code === error.PERMISSION_DENIED
+            ? "Molimo dopustite pristup lokaciji za bolje iskustvo."
+            : "Greška pri dohvaćanju vaše lokacije.",
+        );
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+    );
+  }, []);
+
+  return { userLocation, locationError, isLocating, requestLocation };
+};
+
 export default function MapsContainer() {
   // State management
   const [selectedSport, setSelectedSport] = useState<string>("");
@@ -261,7 +327,12 @@ export default function MapsContainer() {
     null,
   );
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [showLocationRequest, setShowLocationRequest] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
+
+  // Get user location
+  const { userLocation, locationError, isLocating, requestLocation } =
+    useUserLocation();
 
   // Fetch teams with coordinates
   const { teams, isLoading: isTeamsLoading } = useTeamsWithCoordinates();
@@ -285,8 +356,30 @@ export default function MapsContainer() {
   });
 
   // Map callbacks
-  const onLoad = useCallback((map: google.maps.Map) => setMap(map), []);
+  const onLoad = useCallback((map: google.maps.Map) => {
+    setMap(map);
+    // Show location request prompt after map loads
+    setShowLocationRequest(true);
+  }, []);
+
   const onUnmount = useCallback(() => setMap(null), []);
+
+  // Request location on component mount
+  useEffect(() => {
+    // Only automatically request location when the map is loaded
+    if (isLoaded && showLocationRequest) {
+      requestLocation();
+      setShowLocationRequest(false);
+    }
+  }, [isLoaded, showLocationRequest, requestLocation]);
+
+  // Update map center when user location is available
+  useEffect(() => {
+    if (map && userLocation) {
+      map.panTo(userLocation);
+      map.setZoom(13); // Zoom in when we have user's location
+    }
+  }, [map, userLocation]);
 
   // Close location card when clicking outside
   useEffect(() => {
@@ -322,8 +415,9 @@ export default function MapsContainer() {
     );
   };
 
-  // Calculate default center from locations
+  // Calculate default center from locations or use user location
   const defaultCenter = useMemo(() => {
+    if (userLocation) return userLocation;
     if (locations.length === 0) return MAP_CONFIG.defaultCenter;
 
     // Calculate average of all coordinates
@@ -339,17 +433,36 @@ export default function MapsContainer() {
       lat: sum.lat / locations.length,
       lng: sum.lng / locations.length,
     };
-  }, [locations]);
+  }, [locations, userLocation]);
 
-  // Filter locations based on selected sport ID
+  // Filter locations based on selected sport ID and distance
   const filteredLocations = useMemo(() => {
-    if (!selectedSport) return locations;
+    let filtered = locations;
 
-    return locations.filter((location) =>
-      // Check if the location's sports array contains the selected sport ID
-      location.sport.includes(selectedSport),
-    );
-  }, [locations, selectedSport]);
+    // Filter by sport if a sport is selected
+    if (selectedSport) {
+      filtered = filtered.filter((location) =>
+        location.sport.includes(selectedSport),
+      );
+    }
+
+    // Filter by distance if a distance is selected and user location is available
+    if (selectedDistance && userLocation) {
+      const distanceKm = parseInt(selectedDistance.replace("km", ""));
+
+      filtered = filtered.filter((location) => {
+        const distance = calculateDistance(
+          userLocation.lat,
+          userLocation.lng,
+          location.position.lat,
+          location.position.lng,
+        );
+        return distance <= distanceKm;
+      });
+    }
+
+    return filtered;
+  }, [locations, selectedSport, selectedDistance, userLocation]);
 
   // Prepare distance options
   const distanceOptions = useMemo(
@@ -391,6 +504,15 @@ export default function MapsContainer() {
               align="end"
               selectedValue={selectedDistance}
             />
+            {locationError && !userLocation && (
+              <Button
+                onClick={requestLocation}
+                variant="outline"
+                className="ml-2 rounded-full border-white/30 bg-white/10 text-xs text-white"
+              >
+                Omogući pristup lokaciji
+              </Button>
+            )}
           </div>
           <SearchInput />
         </div>
@@ -400,11 +522,14 @@ export default function MapsContainer() {
             <GoogleMap
               mapContainerStyle={MAP_CONFIG.containerStyle}
               center={defaultCenter}
-              zoom={10}
+              zoom={userLocation ? 13 : 10}
               onLoad={onLoad}
               onUnmount={onUnmount}
               options={MAP_CONFIG.options}
             >
+              {/* User location marker */}
+              {userLocation && <Marker position={userLocation} />}
+
               {selectedLocation && (
                 <div ref={cardRef}>
                   <MapLocationCard
@@ -437,6 +562,12 @@ export default function MapsContainer() {
                   ? "Učitavanje podataka..."
                   : "Učitavanje karte..."}
               </p>
+            </div>
+          )}
+
+          {isLocating && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 transform rounded-full bg-black/50 px-4 py-2 text-sm text-white">
+              Dohvaćanje vaše lokacije...
             </div>
           )}
         </div>
