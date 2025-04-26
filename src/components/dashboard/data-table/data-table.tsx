@@ -9,7 +9,6 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -20,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -78,7 +76,6 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
@@ -129,7 +126,7 @@ export function DataTable<TData, TValue>({
   React.useEffect(() => {
     if (tableBodyRef.current) {
       const rows = tableBodyRef.current.querySelectorAll("tr");
-      if (rows.length) {
+      if (rows.length > 0) {
         animate(
           rows,
           {
@@ -177,7 +174,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full" ref={tableRef}>
-      <div className="rounded-md">
+      <div className="max-h-[calc(100vh-200px)] overflow-y-auto rounded-md">
         <Table
           filterComponent={
             <div className="flex w-full items-center justify-between space-x-2">
@@ -191,11 +188,13 @@ export function DataTable<TData, TValue>({
                     // Animate filter dropdown buttons when search changes
                     const filterButtons =
                       document.querySelectorAll(".filter-button");
-                    animate(
-                      filterButtons,
-                      { scale: [0.97, 1] },
-                      { duration: 0.2 },
-                    );
+                    if (filterButtons.length > 0) {
+                      animate(
+                        filterButtons,
+                        { scale: [0.97, 1] },
+                        { duration: 0.2 },
+                      );
+                    }
                   }}
                   className="w-xs pr-10"
                 />
@@ -208,6 +207,7 @@ export function DataTable<TData, TValue>({
                       <Button
                         variant="outline"
                         className="filter-button flex items-center gap-2"
+                        data-filter-label={filter.label}
                       >
                         {filter.label} <ChevronDown className="h-4 w-4" />
                       </Button>
@@ -217,14 +217,16 @@ export function DataTable<TData, TValue>({
                         // Animate dropdown close
                         const dropdownItems =
                           document.querySelectorAll(".dropdown-item");
-                        animate(
-                          dropdownItems,
-                          { opacity: [1, 0], y: [0, -5] },
-                          {
-                            duration: 0.2,
-                            delay: stagger(0.03, { from: "last" }),
-                          },
-                        );
+                        if (dropdownItems.length > 0) {
+                          animate(
+                            dropdownItems,
+                            { opacity: [1, 0], y: [0, -5] },
+                            {
+                              duration: 0.2,
+                              delay: stagger(0.03, { from: "last" }),
+                            },
+                          );
+                        }
                       }}
                     >
                       {filter.options.map((option) => (
@@ -238,7 +240,7 @@ export function DataTable<TData, TValue>({
                             handleFilterChange(filter.column, option.value);
                             // Animate button on selection
                             const button = document.querySelector(
-                              `button:contains("${filter.label}")`,
+                              `button[data-filter-label="${filter.label}"]`,
                             );
                             if (button) {
                               animate(

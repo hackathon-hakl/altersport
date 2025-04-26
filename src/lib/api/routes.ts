@@ -1,5 +1,3 @@
-"use server";
-
 /**
  * API Routes
  * 
@@ -9,9 +7,10 @@
 
 export const apiRoutes = {
   /**
-   * Posts routes
+   * Airtable routes
    */
-
-
-  // Add more route categories as needed
+  airtable: {
+    kategorije: "/airtable/kategorije",
+    sports: "/airtable/sports",
+  },
 };

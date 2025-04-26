@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/dashboard/header";
-import { PlusIcon, EllipsisVerticalIcon } from "lucide-react";
+import { PlusIcon, EllipsisVerticalIcon, CalendarIcon } from "lucide-react";
 import {
   DataTable,
   type FilterOption,
@@ -34,129 +34,137 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { z } from "zod";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import {
+  useKategorije,
+  useCreateKategorija,
+  useUpdateKategorija,
+} from "@/hooks/queries/useKategorije";
+import { useSports, useSport } from "@/hooks/queries/useSports";
+import { mockAssignees } from "@/utils/mockData";
+import type { Assignee } from "@/utils/mockData";
 
+// Define the League type based on KategorijaRecord
 export type League = {
   id: string;
   naziv: string;
   sport: string;
-  vrstaLige: "Privatna" | "Službena";
-  brojTimova: number;
+  vrstaLige: string;
   organizator: string;
+  assigneeEmail: string;
   pocetak: string;
   kraj: string;
-  status: "Aktivno" | "Neaktivno";
+  status: string;
 };
-
-const leagueData: League[] = [
-  {
-    id: "1",
-    naziv: "Hrvatska školska liga 2025",
-    sport: "Nogomet",
-    vrstaLige: "Privatna",
-    brojTimova: 10,
-    organizator: "Ivan Kranjec",
-    pocetak: "21.4.2025.",
-    kraj: "18.6.2025.",
-    status: "Aktivno",
-  },
-  {
-    id: "2",
-    naziv: "Hrvatska školska liga 2025",
-    sport: "Nogomet",
-    vrstaLige: "Službena",
-    brojTimova: 8,
-    organizator: "Ivan Kranjec",
-    pocetak: "21.4.2025.",
-    kraj: "18.6.2025.",
-    status: "Aktivno",
-  },
-  {
-    id: "3",
-    naziv: "Brooklyn Simmons",
-    sport: "Nogomet",
-    vrstaLige: "Službena",
-    brojTimova: 10,
-    organizator: "Ivan Kranjec",
-    pocetak: "21.4.2025.",
-    kraj: "18.6.2025.",
-    status: "Aktivno",
-  },
-  {
-    id: "4",
-    naziv: "Hrvatska školska liga 2025",
-    sport: "Nogomet",
-    vrstaLige: "Privatna",
-    brojTimova: 12,
-    organizator: "Ivan Kranjec",
-    pocetak: "21.4.2025.",
-    kraj: "18.6.2025.",
-    status: "Aktivno",
-  },
-  {
-    id: "5",
-    naziv: "Ralph Edwards",
-    sport: "Odbojka",
-    vrstaLige: "Privatna",
-    brojTimova: 7,
-    organizator: "Ivan Kranjec",
-    pocetak: "21.4.2025.",
-    kraj: "18.6.2025.",
-    status: "Neaktivno",
-  },
-  {
-    id: "6",
-    naziv: "Theresa Webb",
-    sport: "Rukomet",
-    vrstaLige: "Privatna",
-    brojTimova: 9,
-    organizator: "Ivan Kranjec",
-    pocetak: "21.4.2025.",
-    kraj: "18.6.2025.",
-    status: "Neaktivno",
-  },
-];
-
-// Form schema
-const leagueFormSchema = z.object({
-  naziv: z.string().min(1, "Naziv je obavezan"),
-  sport: z.string().min(1, "Odaberite sport"),
-  vrstaLige: z.string().min(1, "Odaberite vrstu lige"),
-  brojTimova: z.coerce.number().min(2, "Minimalno 2 tima"),
-  organizator: z.string().min(1, "Organizator je obavezan"),
-  pocetak: z.string().min(1, "Datum početka je obavezan"),
-  kraj: z.string().min(1, "Datum završetka je obavezan"),
-  status: z.enum(["Aktivno", "Neaktivno"]).default("Aktivno"),
-});
 
 // League Form Component
 type LeagueFormProps = {
   onSubmit: (data: LeagueFormData) => void;
   onCancel: () => void;
   initialData?: League;
+  sports: { id: string; name: string }[];
+  vrstaLige: string[];
+  statuses: string[];
+  assignees: Assignee[];
+  isSubmitting?: boolean;
 };
 
 type LeagueFormData = {
   naziv: string;
   sport: string;
   vrstaLige: string;
-  brojTimova: string;
-  organizator: string;
+  assigneeEmail: string;
   pocetak: string;
   kraj: string;
-  status: "Aktivno" | "Neaktivno";
+  status: string;
 };
 
-function LeagueForm({ onSubmit, onCancel, initialData }: LeagueFormProps) {
+function LeagueForm({
+  onSubmit,
+  onCancel,
+  initialData,
+  sports,
+  vrstaLige,
+  statuses,
+  assignees,
+  isSubmitting = false,
+}: LeagueFormProps) {
   const [formData, setFormData] = useState<LeagueFormData>({
     naziv: initialData?.naziv || "",
     sport: initialData?.sport || "",
     vrstaLige: initialData?.vrstaLige || "",
-    brojTimova: initialData ? String(initialData.brojTimova) : "",
-    organizator: initialData?.organizator || "",
+    assigneeEmail: initialData?.assigneeEmail || "",
     pocetak: initialData?.pocetak || "",
     kraj: initialData?.kraj || "",
-    status: initialData?.status || "Aktivno",
+    status: initialData?.status || "Todo",
+  });
+
+  // Helper function to parse Croatian date format
+  const parseCroatianDate = (dateString: string): Date | undefined => {
+    if (!dateString) return undefined;
+
+    // Remove trailing period if present
+    const cleaned = dateString.endsWith(".")
+      ? dateString.slice(0, -1)
+      : dateString;
+
+    // Split by periods
+    const parts = cleaned.split(".");
+    if (parts.length !== 3) return undefined;
+
+    // Parse parts to numbers
+    const day = parseInt(parts[0] || "0", 10);
+    const month = parseInt(parts[1] || "0", 10) - 1; // Month is 0-indexed in Date
+    const year = parseInt(parts[2] || "0", 10);
+
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return undefined;
+
+    const date = new Date(year, month, day);
+    return !isNaN(date.getTime()) ? date : undefined;
+  };
+
+  // For Calendar components
+  const [startDate, setStartDate] = useState<Date | undefined>(() => {
+    if (initialData?.pocetak) {
+      // Handle the Croatian date format (DD.MM.YYYY.)
+      const dateParts = initialData.pocetak.replace(/\.$/, "").split(".");
+      if (dateParts.length === 3) {
+        const day = parseInt(dateParts[0] || "0", 10);
+        const month = parseInt(dateParts[1] || "0", 10) - 1; // Month is 0-indexed in Date
+        const year = parseInt(dateParts[2] || "0", 10);
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          const date = new Date(year, month, day);
+          return !isNaN(date.getTime()) ? date : undefined;
+        }
+      }
+      return undefined;
+    }
+    return undefined;
+  });
+
+  const [endDate, setEndDate] = useState<Date | undefined>(() => {
+    if (initialData?.kraj) {
+      // Handle the Croatian date format (DD.MM.YYYY.)
+      const dateParts = initialData.kraj.replace(/\.$/, "").split(".");
+      if (dateParts.length === 3) {
+        const day = parseInt(dateParts[0] || "0", 10);
+        const month = parseInt(dateParts[1] || "0", 10) - 1; // Month is 0-indexed in Date
+        const year = parseInt(dateParts[2] || "0", 10);
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          const date = new Date(year, month, day);
+          return !isNaN(date.getTime()) ? date : undefined;
+        }
+      }
+      return undefined;
+    }
+    return undefined;
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,6 +175,25 @@ function LeagueForm({ onSubmit, onCancel, initialData }: LeagueFormProps) {
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  // Update form data when dates change
+  useEffect(() => {
+    if (startDate && !isNaN(startDate.getTime())) {
+      setFormData((prev) => ({
+        ...prev,
+        pocetak: format(startDate, "yyyy-MM-dd"),
+      }));
+    }
+  }, [startDate]);
+
+  useEffect(() => {
+    if (endDate && !isNaN(endDate.getTime())) {
+      setFormData((prev) => ({
+        ...prev,
+        kraj: format(endDate, "yyyy-MM-dd"),
+      }));
+    }
+  }, [endDate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,6 +214,25 @@ function LeagueForm({ onSubmit, onCancel, initialData }: LeagueFormProps) {
         />
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="assigneeEmail">Dodijeli osobi</Label>
+        <Select
+          value={formData.assigneeEmail}
+          onValueChange={(value) => handleSelectChange("assigneeEmail", value)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Odaberite osobu" />
+          </SelectTrigger>
+          <SelectContent>
+            {assignees.map((assignee) => (
+              <SelectItem key={assignee.email} value={assignee.email}>
+                {assignee.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="sport">Sport</Label>
@@ -198,9 +244,11 @@ function LeagueForm({ onSubmit, onCancel, initialData }: LeagueFormProps) {
               <SelectValue placeholder="Odaberite sport" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Nogomet">Nogomet</SelectItem>
-              <SelectItem value="Odbojka">Odbojka</SelectItem>
-              <SelectItem value="Rukomet">Rukomet</SelectItem>
+              {sports.map((sport) => (
+                <SelectItem key={sport.id} value={sport.name}>
+                  {sport.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -215,93 +263,117 @@ function LeagueForm({ onSubmit, onCancel, initialData }: LeagueFormProps) {
               <SelectValue placeholder="Odaberite vrstu" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Privatna">Privatna</SelectItem>
-              <SelectItem value="Službena">Službena</SelectItem>
+              {vrstaLige.length > 0 ? (
+                vrstaLige.map((vrsta) => (
+                  <SelectItem key={vrsta} value={vrsta}>
+                    {vrsta}
+                  </SelectItem>
+                ))
+              ) : (
+                <>
+                  <SelectItem value="Privatna">Privatna</SelectItem>
+                  <SelectItem value="Službena">Službena</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="brojTimova">Broj timova</Label>
-          <Input
-            id="brojTimova"
-            name="brojTimova"
-            type="number"
-            placeholder="Broj timova"
-            value={formData.brojTimova}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="organizator">Organizator</Label>
-          <Input
-            id="organizator"
-            name="organizator"
-            placeholder="Ime organizatora"
-            value={formData.organizator}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="pocetak">Datum početka</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !startDate && "text-muted-foreground",
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {startDate ? format(startDate, "dd.MM.yyyy") : "Odaberite datum"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={startDate}
+              onSelect={setStartDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="pocetak">Datum početka</Label>
-          <Input
-            id="pocetak"
-            name="pocetak"
-            placeholder="npr. 21.4.2025."
-            value={formData.pocetak}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="kraj">Datum završetka</Label>
-          <Input
-            id="kraj"
-            name="kraj"
-            placeholder="npr. 18.6.2025."
-            value={formData.kraj}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="kraj">Datum završetka</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !endDate && "text-muted-foreground",
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {endDate ? format(endDate, "dd.MM.yyyy") : "Odaberite datum"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={endDate}
+              onSelect={setEndDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="status">Status</Label>
         <Select
           value={formData.status}
-          onValueChange={(value) =>
-            handleSelectChange("status", value as "Aktivno" | "Neaktivno")
-          }
+          onValueChange={(value) => handleSelectChange("status", value)}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Odaberite status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Aktivno">Aktivno</SelectItem>
-            <SelectItem value="Neaktivno">Neaktivno</SelectItem>
+            {statuses.length > 0 ? (
+              statuses.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))
+            ) : (
+              <>
+                <SelectItem value="Todo">Todo</SelectItem>
+                <SelectItem value="In progress">In progress</SelectItem>
+                <SelectItem value="Done">Done</SelectItem>
+              </>
+            )}
           </SelectContent>
         </Select>
       </div>
 
       <DialogFooter>
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
           Odustani
         </Button>
         <Button
           className="bg-[#BBFA01] text-black hover:bg-[#99cc00]"
           type="submit"
+          disabled={isSubmitting}
         >
-          Spremi ligu
+          {isSubmitting ? "Spremanje..." : "Spremi ligu"}
         </Button>
       </DialogFooter>
     </form>
@@ -312,16 +384,180 @@ export default function Leagues() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentLeague, setCurrentLeague] = useState<League | null>(null);
+  const {
+    data: kategorije,
+    isLoading: kategorijLoading,
+    error: kategorijeError,
+  } = useKategorije();
+  const {
+    data: sports,
+    isLoading: sportsLoading,
+    error: sportsError,
+  } = useSports();
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [sportMap, setSportMap] = useState<Record<string, string>>({});
+  const [uniqueVrstaLige, setUniqueVrstaLige] = useState<string[]>([]);
+  const [uniqueStatuses, setUniqueStatuses] = useState<string[]>([]);
+  const { mutate: createLeague, isPending: isCreating } = useCreateKategorija();
+  const { mutate: updateLeague, isPending: isUpdating } = useUpdateKategorija();
+
+  // Create a map of sport IDs to sport names
+  useEffect(() => {
+    if (sports) {
+      const map: Record<string, string> = {};
+      sports.forEach((sport) => {
+        map[sport.id] = sport.name;
+      });
+      setSportMap(map);
+    }
+  }, [sports]);
+
+  // Convert Kategorija records to League format and extract unique values for filters
+  useEffect(() => {
+    if (kategorije && sportMap) {
+      const mappedLeagues = kategorije.map((category) => {
+        // Get the first sport ID from the category's sport array
+        const sportId =
+          category.sport && category.sport.length > 0
+            ? category.sport[0]
+            : null;
+
+        const sportName = sportId
+          ? sportMap[sportId] || "Nepoznat"
+          : "Nepoznat";
+
+        // Find the assignee in our mockup data or set to default
+        const assigneeEmail = category.assignee?.email || "";
+        const assigneeName = category.assignee?.name || "Nepoznat";
+
+        return {
+          id: category.id,
+          naziv: category.name,
+          sport: sportName,
+          vrstaLige: category?.vrstaLige || "",
+          organizator: assigneeName,
+          assigneeEmail: assigneeEmail,
+          pocetak: category.startdate || "",
+          kraj: category.enddate || "",
+          status: category.status || "Todo",
+        };
+      });
+
+      setLeagues(mappedLeagues);
+
+      // Extract unique values for vrstaLige
+      const vrstaSet = new Set<string>();
+      // Extract unique values for status
+      const statusSet = new Set<string>();
+
+      mappedLeagues.forEach((league) => {
+        if (league.vrstaLige) vrstaSet.add(league.vrstaLige);
+        if (league.status) statusSet.add(league.status);
+      });
+
+      setUniqueVrstaLige(Array.from(vrstaSet));
+      setUniqueStatuses(Array.from(statusSet));
+    }
+  }, [kategorije, sportMap]);
 
   const handleCreateLeague = (data: LeagueFormData) => {
-    console.log("Creating new league:", data);
-    setDialogOpen(false);
+    // Find the sport ID from the selected sport name
+    const sportId = Object.entries(sportMap).find(
+      ([_, name]) => name === data.sport,
+    )?.[0];
+
+    if (!sportId) {
+      console.error("Sport not found");
+      return;
+    }
+
+    // Find the selected assignee
+    const selectedAssignee = mockAssignees.find(
+      (a) => a.email === data.assigneeEmail,
+    );
+
+    // Create the league data object
+    const leagueData = {
+      name: data.naziv,
+      sport: [sportId],
+      notes: "",
+      vrstaLige: data.vrstaLige,
+      status: data.status,
+      startdate: data.pocetak, // Already in YYYY-MM-DD format from the Calendar
+      enddate: data.kraj, // Already in YYYY-MM-DD format from the Calendar
+      assignee: selectedAssignee
+        ? {
+            id: selectedAssignee.id,
+            email: selectedAssignee.email,
+            name: selectedAssignee.name,
+          }
+        : undefined,
+    };
+
+    // Create the league
+    createLeague(leagueData, {
+      onSuccess: () => {
+        setDialogOpen(false);
+      },
+      onError: (error) => {
+        console.error("Error creating league:", error);
+        // Could add an error toast notification here
+      },
+    });
   };
 
   const handleEditLeague = (data: LeagueFormData) => {
-    console.log("Editing league:", currentLeague?.id, data);
-    setEditDialogOpen(false);
-    setCurrentLeague(null);
+    // Find the sport ID from the selected sport name
+    const sportId = Object.entries(sportMap).find(
+      ([_, name]) => name === data.sport,
+    )?.[0];
+
+    if (!sportId) {
+      console.error("Sport not found");
+      return;
+    }
+
+    // Make sure we have the current league
+    if (!currentLeague) {
+      console.error("No league selected for editing");
+      return;
+    }
+
+    // Find the selected assignee
+    const selectedAssignee = mockAssignees.find(
+      (a) => a.email === data.assigneeEmail,
+    );
+
+    // Create the league data object for update
+    const leagueData = {
+      id: currentLeague.id,
+      name: data.naziv,
+      sport: [sportId],
+      notes: "",
+      vrstaLige: data.vrstaLige,
+      status: data.status,
+      startdate: data.pocetak,
+      enddate: data.kraj,
+      assignee: selectedAssignee
+        ? {
+            id: selectedAssignee.id,
+            email: selectedAssignee.email,
+            name: selectedAssignee.name,
+          }
+        : undefined,
+    };
+
+    // Update the league
+    updateLeague(leagueData, {
+      onSuccess: () => {
+        setEditDialogOpen(false);
+        setCurrentLeague(null);
+      },
+      onError: (error) => {
+        console.error("Error updating league:", error);
+        // Could add an error toast notification here
+      },
+    });
   };
 
   const openEditDialog = (league: League) => {
@@ -346,11 +582,6 @@ export default function Leagues() {
       cell: ({ row }) => <div>{row.getValue("vrstaLige")}</div>,
     },
     {
-      accessorKey: "brojTimova",
-      header: "Broj timova",
-      cell: ({ row }) => <div>{row.getValue("brojTimova")}</div>,
-    },
-    {
       accessorKey: "organizator",
       header: "Organizator",
       cell: ({ row }) => <div>{row.getValue("organizator")}</div>,
@@ -370,14 +601,23 @@ export default function Leagues() {
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("status") as string;
+        let bgColor = "bg-[#ff646633]";
+        let dotColor = "bg-[#C40D10]";
+
+        if (status === "Todo") {
+          bgColor = "bg-[#ff646633]";
+          dotColor = "bg-[#C40D10]";
+        } else if (status === "In progress") {
+          bgColor = "bg-[#facc1533]";
+          dotColor = "bg-[#E7A600]";
+        } else if (status === "Done") {
+          bgColor = "bg-[#5dcc4e33]";
+          dotColor = "bg-[#0D8C37]";
+        }
+
         return (
-          <Badge
-            variant={"status"}
-            className={`${status === "Aktivno" ? "bg-[#5dcc4e33]" : "bg-[#ff646633]"}`}
-          >
-            <div
-              className={`size-1.5 rounded-full ${status === "Aktivno" ? "bg-[#0D8C37]" : "bg-[#C40D10]"}`}
-            />
+          <Badge variant={"status"} className={bgColor}>
+            <div className={`size-1.5 rounded-full ${dotColor}`} />
             <span className="text-sm font-normal">{status}</span>
           </Badge>
         );
@@ -398,13 +638,6 @@ export default function Leagues() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(league.id)}
-              >
-                Kopiraj ID lige
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Pregled lige</DropdownMenuItem>
               <DropdownMenuItem onClick={() => openEditDialog(league)}>
                 Uredi ligu
               </DropdownMenuItem>
@@ -420,37 +653,38 @@ export default function Leagues() {
     {
       label: "Sport",
       column: "sport",
-      options: [
-        { label: "Nogomet", value: "Nogomet" },
-        { label: "Odbojka", value: "Odbojka" },
-        { label: "Rukomet", value: "Rukomet" },
-      ],
+      options: sports
+        ? sports.map((sport) => ({ label: sport.name, value: sport.name }))
+        : [],
     },
     {
       label: "Status",
       column: "status",
-      options: [
-        { label: "Aktivno", value: "Aktivno" },
-        { label: "Neaktivno", value: "Neaktivno" },
-      ],
+      options:
+        uniqueStatuses.length > 0
+          ? uniqueStatuses.map((status) => ({ label: status, value: status }))
+          : [
+              { label: "Todo", value: "Todo" },
+              { label: "In progress", value: "In progress" },
+              { label: "Done", value: "Done" },
+            ],
     },
     {
       label: "Vrsta lige",
       column: "vrstaLige",
-      options: [
-        { label: "Privatna", value: "Privatna" },
-        { label: "Službena", value: "Službena" },
-      ],
-    },
-    {
-      label: "Datum",
-      column: "",
-      options: [
-        { label: "Najnoviji", value: "newest" },
-        { label: "Najstariji", value: "oldest" },
-      ],
+      options:
+        uniqueVrstaLige.length > 0
+          ? uniqueVrstaLige.map((vrsta) => ({ label: vrsta, value: vrsta }))
+          : [
+              { label: "Privatna", value: "Privatna" },
+              { label: "Službena", value: "Službena" },
+            ],
     },
   ];
+
+  if (kategorijLoading || sportsLoading) return <div>Učitavanje...</div>;
+  if (kategorijeError || sportsError)
+    return <div>Greška pri učitavanju podataka</div>;
 
   return (
     <div>
@@ -472,6 +706,11 @@ export default function Leagues() {
           <LeagueForm
             onSubmit={handleCreateLeague}
             onCancel={() => setDialogOpen(false)}
+            sports={sports || []}
+            vrstaLige={uniqueVrstaLige}
+            statuses={uniqueStatuses}
+            assignees={mockAssignees}
+            isSubmitting={isCreating}
           />
         </DialogContent>
       </Dialog>
@@ -492,6 +731,11 @@ export default function Leagues() {
                 setEditDialogOpen(false);
                 setCurrentLeague(null);
               }}
+              sports={sports || []}
+              vrstaLige={uniqueVrstaLige}
+              statuses={uniqueStatuses}
+              assignees={mockAssignees}
+              isSubmitting={isUpdating}
             />
           )}
         </DialogContent>
@@ -499,7 +743,7 @@ export default function Leagues() {
 
       <DataTable
         columns={leagueColumns}
-        data={leagueData}
+        data={leagues}
         filterOptions={leagueFilterOptions}
         searchPlaceholder="Pretraži lige"
       />
