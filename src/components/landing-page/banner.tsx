@@ -12,7 +12,7 @@ export default function Banner() {
           Odgovori na kratke pitalice i predložimo ti sportove u blizini.
         </p>
       </div>
-      <button className="bg-cta flex w-fit cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-sm text-white">
+      <button className="bg-cta hover:bg-cta/80 flex w-fit cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-sm text-white transition-all duration-300">
         Ispuni Kviz
         <ArrowRight size={16} color="white" />
       </button>

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CustomMarker } from "../ui/custom-marker";
 import MapLocationCard from "../ui/map-location-card";
+import SearchInput from "./search-input";
 
 // Define location type for better type safety
 type Location = {
@@ -260,18 +261,22 @@ export default function MapsContainer() {
       <h2 className="text-2xl font-semibold text-white">Pretraži na karti</h2>
 
       <div className="flex flex-col gap-5 rounded-md bg-[#0E0C28] p-5">
-        <div className="flex items-center gap-2">
-          <FilterDropdown
-            label={selectedSport}
-            options={sports}
-            onSelect={setSelectedSport}
-          />
-          <FilterDropdown
-            label={selectedDistance}
-            options={distances}
-            onSelect={setSelectedDistance}
-            align="end"
-          />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FilterDropdown
+              label={selectedSport}
+              options={sports}
+              onSelect={setSelectedSport}
+              align="start"
+            />
+            <FilterDropdown
+              label={selectedDistance}
+              options={distances}
+              onSelect={setSelectedDistance}
+              align="end"
+            />
+          </div>
+          <SearchInput />
         </div>
 
         <div className="relative w-full">
