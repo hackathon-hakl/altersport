@@ -84,7 +84,7 @@ export default function ClubPage() {
         />
         <div className="absolute -bottom-18 left-0 w-full translate-y-1/2 transform">
           <div className="px-8 py-3">
-            <TitleHeader />
+            <TitleHeader club={club} />
           </div>
         </div>
       </div>
