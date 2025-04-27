@@ -9,12 +9,14 @@ interface CarouselProps {
   variant?: "match" | "tournament";
   title?: string;
   items: any[];
+  isLoading?: boolean;
 }
 
 export default function Carousel({
   variant = "match",
   title = "Preporučeni događaji",
   items = [],
+  isLoading = false,
 }: CarouselProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -55,6 +57,11 @@ export default function Carousel({
       }
     };
   }, []);
+
+  // Re-check scroll state when items change
+  useEffect(() => {
+    checkScrollButtons();
+  }, [items]);
 
   const scrollCarousel = (direction: "left" | "right") => {
     if (!carouselRef.current) return;
@@ -109,7 +116,50 @@ export default function Carousel({
           },
         ];
 
-  const displayItems = items.length > 0 ? items : defaultItems;
+  // Use provided items, fall back to defaults if empty and not loading
+  const displayItems =
+    items.length > 0 ? items : !isLoading ? defaultItems : items;
+
+  // Skeleton card renderer for loading state
+  const renderCard = (itemProps: any, index: number) => {
+    if (itemProps.isLoading) {
+      return (
+        <div
+          key={itemProps.id || index}
+          className="flex min-h-60 min-w-80 animate-pulse flex-col justify-between rounded-2xl bg-[#0E0C28]/50 p-4"
+        >
+          <div className="flex items-center justify-between">
+            <div className="h-4 w-20 rounded bg-[#1A1744]"></div>
+            <div className="h-6 w-6 rounded-full bg-[#1A1744]"></div>
+          </div>
+          <div className="flex items-center justify-around">
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-12 w-12 rounded-full bg-[#1A1744]"></div>
+              <div className="mt-1.5 h-4 w-16 rounded bg-[#1A1744]"></div>
+            </div>
+            <div className="mb-7 h-12 w-[1px] bg-[#1A1744]"></div>
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-12 w-12 rounded-full bg-[#1A1744]"></div>
+              <div className="mt-1.5 h-4 w-16 rounded bg-[#1A1744]"></div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <div className="h-6 w-32 rounded bg-[#1A1744]"></div>
+              <div className="mt-1 h-4 w-20 rounded bg-[#1A1744]"></div>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-[#1A1744]"></div>
+          </div>
+        </div>
+      );
+    }
+
+    return variant === "match" ? (
+      <MatchCard key={index} {...itemProps} />
+    ) : (
+      <TournamentCard key={index} {...itemProps} />
+    );
+  };
 
   return (
     <div className="flex h-full w-full flex-col gap-6 overflow-x-hidden">
@@ -141,13 +191,7 @@ export default function Carousel({
           className="no-scrollbar flex gap-6 overflow-x-auto scroll-smooth"
           style={{ width: "100%", maxWidth: "100%" }}
         >
-          {displayItems.map((itemProps, index) =>
-            variant === "match" ? (
-              <MatchCard key={index} {...itemProps} />
-            ) : (
-              <TournamentCard key={index} {...itemProps} />
-            ),
-          )}
+          {displayItems.map((itemProps, index) => renderCard(itemProps, index))}
         </div>
         <div
           className="pointer-events-none absolute top-0 right-0 h-full w-24 bg-gradient-to-l from-[#070314]/70 via-[#070314]/50 via-60% to-transparent transition-opacity duration-300"
