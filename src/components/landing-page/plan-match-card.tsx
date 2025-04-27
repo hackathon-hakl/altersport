@@ -38,6 +38,7 @@ export interface PlanMatchCardProps {
   awayTeamResult?: number;
   matchDate?: string;
   matchTime?: string;
+  locationName?: string;
 }
 
 export default function PlanMatchCard({
@@ -48,12 +49,13 @@ export default function PlanMatchCard({
   awayTeamResult = 0,
   matchDate,
   matchTime,
+  locationName,
 }: PlanMatchCardProps) {
   return (
     <div className="flex items-center justify-between rounded-2xl bg-[#0E0C28] p-4">
       <div className="flex flex-col gap-1">
         <p className="text-base font-bold text-white">
-          {homeTeam.name} · {matchTime || "TBD"}
+          {locationName || "Venue TBD"} · {matchTime || "TBD"}
         </p>
         <p className="text-sm text-white/80">{matchDate || "Date TBD"}</p>
       </div>

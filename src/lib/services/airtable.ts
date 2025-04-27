@@ -79,6 +79,38 @@ export interface MatchRecord {
   tournaments?: string[];
 }
 
+export interface LocationRecord {
+  id: string;
+  venueName: string;
+  address: string;
+  capacity?: number;
+  facilities?: string[];
+  photo?: {
+    id: string;
+    url: string;
+    filename: string;
+    size: number;
+    type: string;
+    width?: number;
+    height?: number;
+    thumbnails?: {
+      small?: {
+        url: string;
+        width: number;
+        height: number;
+      };
+      large?: {
+        url: string;
+        width: number;
+        height: number;
+      };
+    };
+  }[];
+  matchesHosted?: string[];
+  tournamentsHosted?: string[];
+  sport?: string[];
+}
+
 /**
  * Fetch all Kategorije from Airtable
  */
@@ -479,5 +511,147 @@ export async function updateMatch(data: {
   } catch (error) {
     console.error("Error updating Match in Airtable:", error);
     throw new Error("Failed to update Match");
+  }
+}
+
+/**
+ * Fetch all Locations from Airtable
+ */
+export async function getLocations(): Promise<LocationRecord[]> {
+  try {
+    const records = await base("Lokacije")
+      .select({
+        view: "Grid view",
+      })
+      .all();
+
+    return records.map((record) => {
+      return {
+        id: record.id,
+        venueName: record.get("Venue Name") as string,
+        address: record.get("Address") as string,
+        capacity: record.get("Capacity") as number,
+        facilities: record.get("Facilities") as string[],
+        photo: record.get("Photo") as LocationRecord["photo"],
+        matchesHosted: record.get("Matches Hosted") as string[],
+        tournamentsHosted: record.get("Tournaments Hosted") as string[],
+        sport: record.get("Sport") as string[],
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching Locations from Airtable:", error);
+    throw new Error("Failed to fetch Locations");
+  }
+}
+
+/**
+ * Fetch a single Location record by ID from Airtable
+ */
+export async function getLocation(id: string): Promise<LocationRecord> {
+  try {
+    const record = await base("Lokacije").find(id);
+
+    return {
+      id: record.id,
+      venueName: record.get("Venue Name") as string,
+      address: record.get("Address") as string,
+      capacity: record.get("Capacity") as number,
+      facilities: record.get("Facilities") as string[],
+      photo: record.get("Photo") as LocationRecord["photo"],
+      matchesHosted: record.get("Matches Hosted") as string[],
+      tournamentsHosted: record.get("Tournaments Hosted") as string[],
+      sport: record.get("Sport") as string[],
+    };
+  } catch (error) {
+    console.error("Error fetching Location from Airtable:", error);
+    throw new Error("Failed to fetch Location");
+  }
+}
+
+/**
+ * Create a new Location in Airtable
+ */
+export async function createLocation(data: {
+  venueName: string;
+  address: string;
+  capacity?: number;
+  facilities?: string[];
+  photo?: any[]; // Using any for attachment uploads
+  matchesHosted?: string[];
+  tournamentsHosted?: string[];
+  sport?: string[];
+}): Promise<LocationRecord> {
+  try {
+    const record = await base("Lokacije").create({
+      "Venue Name": data.venueName,
+      Address: data.address,
+      Capacity: data.capacity,
+      Facilities: data.facilities,
+      Photo: data.photo,
+      "Matches Hosted": data.matchesHosted,
+      "Tournaments Hosted": data.tournamentsHosted,
+      Sport: data.sport,
+    });
+
+    return {
+      id: record.id,
+      venueName: record.get("Venue Name") as string,
+      address: record.get("Address") as string,
+      capacity: record.get("Capacity") as number,
+      facilities: record.get("Facilities") as string[],
+      photo: record.get("Photo") as LocationRecord["photo"],
+      matchesHosted: record.get("Matches Hosted") as string[],
+      tournamentsHosted: record.get("Tournaments Hosted") as string[],
+      sport: record.get("Sport") as string[],
+    };
+  } catch (error) {
+    console.error("Error creating Location in Airtable:", error);
+    throw new Error("Failed to create Location");
+  }
+}
+
+/**
+ * Update an existing Location in Airtable
+ */
+export async function updateLocation(data: {
+  id: string;
+  venueName?: string;
+  address?: string;
+  capacity?: number;
+  facilities?: string[];
+  photo?: any[]; // Using any for attachment uploads
+  matchesHosted?: string[];
+  tournamentsHosted?: string[];
+  sport?: string[];
+}): Promise<LocationRecord> {
+  try {
+    const updateData: Record<string, any> = {};
+
+    if (data.venueName) updateData["Venue Name"] = data.venueName;
+    if (data.address) updateData["Address"] = data.address;
+    if (data.capacity !== undefined) updateData["Capacity"] = data.capacity;
+    if (data.facilities) updateData["Facilities"] = data.facilities;
+    if (data.photo) updateData["Photo"] = data.photo;
+    if (data.matchesHosted) updateData["Matches Hosted"] = data.matchesHosted;
+    if (data.tournamentsHosted)
+      updateData["Tournaments Hosted"] = data.tournamentsHosted;
+    if (data.sport) updateData["Sport"] = data.sport;
+
+    const record = await base("Lokacije").update(data.id, updateData);
+
+    return {
+      id: record.id,
+      venueName: record.get("Venue Name") as string,
+      address: record.get("Address") as string,
+      capacity: record.get("Capacity") as number,
+      facilities: record.get("Facilities") as string[],
+      photo: record.get("Photo") as LocationRecord["photo"],
+      matchesHosted: record.get("Matches Hosted") as string[],
+      tournamentsHosted: record.get("Tournaments Hosted") as string[],
+      sport: record.get("Sport") as string[],
+    };
+  } catch (error) {
+    console.error("Error updating Location in Airtable:", error);
+    throw new Error("Failed to update Location");
   }
 }

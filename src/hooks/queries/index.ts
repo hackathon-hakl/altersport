@@ -4,5 +4,6 @@ export * from "./useKategorije";
 export * from "./useSports";
 export * from "./useTeams";
 export * from "./useMatches";
+export * from "./useLocations";
 export * from "./useExternalData";
 export * from "./useUsers";

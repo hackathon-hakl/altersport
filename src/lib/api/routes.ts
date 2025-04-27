@@ -14,6 +14,7 @@ export const apiRoutes = {
     sports: "/airtable/sports",
     teams: "/airtable/teams",
     matches: "/airtable/matches",
+    locations: "/airtable/locations",
   },
 
   /**

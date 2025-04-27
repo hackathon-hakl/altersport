@@ -16,6 +16,7 @@ export default function Results({
   const [activeTab, setActiveTab] = useState("all");
   const [filteredMatches, setFilteredMatches] = useState<MatchRecord[]>([]);
   const [teamData, setTeamData] = useState<Record<string, any>>({});
+  const [locationData, setLocationData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   // Vertical carousel state
@@ -108,7 +109,7 @@ export default function Results({
     return new Date(year, month, day);
   };
 
-  // Load team data for all teams in matches
+  // Load team and location data for all matches
   useEffect(() => {
     if (!clubMatches.length) {
       setIsLoading(false);
@@ -117,14 +118,19 @@ export default function Results({
 
     setIsLoading(true);
 
-    // Collect all team IDs
+    // Collect all team and location IDs
     const teamIds = new Set<string>();
+    const locationIds = new Set<string>();
+
     clubMatches.forEach((match) => {
       if (match.homeTeam && match.homeTeam.length) {
         match.homeTeam.forEach((id) => teamIds.add(id));
       }
       if (match.awayTeam && match.awayTeam.length) {
         match.awayTeam.forEach((id) => teamIds.add(id));
+      }
+      if (match.location && match.location.length) {
+        match.location.forEach((id) => locationIds.add(id));
       }
     });
 
@@ -141,16 +147,41 @@ export default function Results({
       }
     };
 
-    // Fetch data for all teams
-    Promise.all(Array.from(teamIds).map(fetchTeamData))
+    // Function to fetch location data
+    const fetchLocationData = async (id: string) => {
+      try {
+        const response = await fetch(`/api/airtable/locations?id=${id}`);
+        if (!response.ok) throw new Error("Failed to fetch location");
+        const data = await response.json();
+        return { id, data };
+      } catch (error) {
+        console.error(`Error fetching location ${id}:`, error);
+        return { id, data: null };
+      }
+    };
+
+    // Fetch teams and locations in parallel
+    Promise.all([
+      ...Array.from(teamIds).map(fetchTeamData),
+      ...Array.from(locationIds).map(fetchLocationData),
+    ])
       .then((results) => {
         const newTeamData: Record<string, any> = {};
+        const newLocationData: Record<string, any> = {};
+
         results.forEach(({ id, data }) => {
-          if (data) {
+          if (!data) return;
+
+          // Check if this is a team or location by looking at properties
+          if (data.venueName) {
+            newLocationData[id] = data;
+          } else if (data.name) {
             newTeamData[id] = data;
           }
         });
+
         setTeamData(newTeamData);
+        setLocationData(newLocationData);
         setIsLoading(false);
       })
       .catch(() => {
@@ -175,6 +206,15 @@ export default function Results({
           ? team.logo[0].url
           : "",
     };
+  };
+
+  const getLocationName = (locationId: string | undefined) => {
+    if (!locationId) return undefined;
+
+    const location = locationData[locationId];
+    if (!location) return undefined;
+
+    return location.venueName;
   };
 
   return (
@@ -229,9 +269,14 @@ export default function Results({
                 match.awayTeam && match.awayTeam.length > 0
                   ? match.awayTeam[0]
                   : undefined;
+              const locationId =
+                match.location && match.location.length > 0
+                  ? match.location[0]
+                  : undefined;
 
               const homeTeam = getTeamInfo(homeTeamId);
               const awayTeam = getTeamInfo(awayTeamId);
+              const locationName = getLocationName(locationId);
 
               const isPastMatch =
                 match.homeTeamScore !== undefined &&
@@ -257,6 +302,7 @@ export default function Results({
                     awayTeamResult={match.homeTeamScore}
                     matchDate={match.matchDate}
                     matchTime={match.matchTime}
+                    locationName={locationName}
                   />
                 );
               }
@@ -272,6 +318,7 @@ export default function Results({
                   awayTeamResult={match.awayTeamScore}
                   matchDate={match.matchDate}
                   matchTime={match.matchTime}
+                  locationName={locationName}
                 />
               );
             })}
