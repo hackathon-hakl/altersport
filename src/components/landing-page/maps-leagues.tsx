@@ -514,7 +514,15 @@ export default function MapsLeagues() {
               {selectedLocation && (
                 <div ref={cardRef}>
                   <MapLocationCard
-                    location={selectedLocation}
+                    location={{
+                      ...selectedLocation,
+                      // Ensure the sport array includes the current sportId
+                      sport: sportId
+                        ? selectedLocation.sport?.includes(sportId)
+                          ? selectedLocation.sport
+                          : [sportId, ...(selectedLocation.sport || [])]
+                        : selectedLocation.sport,
+                    }}
                     favorite={favorites.includes(selectedLocation.id)}
                     handleToggleFavorite={() =>
                       handleToggleFavorite(selectedLocation.id)

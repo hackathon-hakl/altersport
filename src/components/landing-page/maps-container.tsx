@@ -524,7 +524,15 @@ export default function MapsContainer() {
               {selectedLocation && (
                 <div ref={cardRef}>
                   <MapLocationCard
-                    location={selectedLocation}
+                    location={{
+                      ...selectedLocation,
+                      // If a sport is selected in the filter, prioritize it
+                      sport: selectedSport
+                        ? selectedLocation.sport?.includes(selectedSport)
+                          ? selectedLocation.sport
+                          : [selectedSport, ...(selectedLocation.sport || [])]
+                        : selectedLocation.sport,
+                    }}
                     favorite={favorites.includes(selectedLocation.id)}
                     handleToggleFavorite={() =>
                       handleToggleFavorite(selectedLocation.id)
