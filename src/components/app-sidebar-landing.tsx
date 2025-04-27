@@ -100,7 +100,9 @@ export function AppSidebarLanding({
   return (
     <Sidebar {...props} innerClassName="bg-[#1B0E28]">
       <SidebarHeader className="px-4">
-        <h1 className="mt-6 text-2xl font-bold text-white">ALTERSPORT</h1>
+        <Link href="/home">
+          <h1 className="mt-6 text-2xl font-bold text-white">ALTERSPORT</h1>
+        </Link>
       </SidebarHeader>
       <SidebarContent className="mt-3">
         {/* Leagues/Sports Navigation */}

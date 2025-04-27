@@ -18,6 +18,7 @@ interface CarouselVerticalProps {
   items: ClubItem[];
   sportId?: string;
   isLoading?: boolean;
+  suggestedSport?: boolean;
 }
 
 export default function CarouselVertical({
@@ -25,11 +26,13 @@ export default function CarouselVertical({
   items = [],
   sportId = "",
   isLoading = false,
+  suggestedSport = false,
 }: CarouselVerticalProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(true);
   const [scrollPercentage, setScrollPercentage] = useState(0);
+  console.log(sportId);
 
   const checkScrollButtons = () => {
     if (!carouselRef.current) return;
@@ -77,7 +80,11 @@ export default function CarouselVertical({
         <h2 className="text-2xl font-semibold text-white">{title}</h2>
       </div>
 
-      <div className="relative h-[670px] w-full overflow-hidden">
+      <div
+        className={`relative ${
+          suggestedSport ? "h-[230px]" : "h-[670px]"
+        } w-full overflow-hidden`}
+      >
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
             <Loader />

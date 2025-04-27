@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import OnboardingHeader from "@/components/onboarding/header";
 import Quiz from "@/components/onboarding/quiz";
+import { externalApi } from "@/lib/api/client";
 import {
   ActivitiesEnjoyed,
   AgeGroup,
@@ -13,12 +15,22 @@ import {
 } from "@/types/enums";
 
 export default function OnboardingPage() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [sportType, setSportType] = useState<string>("");
   const [ballSportPreference, setBallSportPreference] = useState<string>("");
   const [activities, setActivities] = useState<string[]>([]);
   const [ageGroup, setAgeGroup] = useState<string>("");
   const [disableNext, setDisableNext] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiResponse, setApiResponse] = useState<any>(null);
+
+  // Submit the quiz data when the final step is shown
+  useEffect(() => {
+    if (currentStep === 4 && !apiResponse && !isSubmitting) {
+      completeQuiz();
+    }
+  }, [currentStep, apiResponse, isSubmitting]);
 
   // Convert enum values to array of string options
   const sportTypeOptions = Object.values(GroupSportType)
@@ -60,6 +72,100 @@ export default function OnboardingPage() {
     }
 
     return allActivities;
+  };
+
+  // Function to get enum key from label
+  const getGroupSportTypeKey = (label: string): string => {
+    const entries = Object.entries(GroupSportType).filter(
+      ([key, value]) => typeof value === "number",
+    );
+    for (const [key, value] of entries) {
+      if (getGroupSportTypeLabel(value as GroupSportType) === label) {
+        return key;
+      }
+    }
+    return "DEFAULT";
+  };
+
+  const getAgeGroupKey = (label: string): string => {
+    const entries = Object.entries(AgeGroup).filter(
+      ([key, value]) => typeof value === "number",
+    );
+    for (const [key, value] of entries) {
+      if (getAgeGroupLabel(value as AgeGroup) === label) {
+        return key;
+      }
+    }
+    return "ADULTS";
+  };
+
+  const getActivityKeys = (labels: string[]): string[] => {
+    const result: string[] = [];
+    const entries = Object.entries(ActivitiesEnjoyed).filter(
+      ([key, value]) => typeof value === "number",
+    );
+
+    for (const label of labels) {
+      for (const [key, value] of entries) {
+        if (
+          getActivitiesEnjoyedLabel(
+            value as ActivitiesEnjoyed,
+          ).toLowerCase() === label.toLowerCase()
+        ) {
+          result.push(key);
+          break;
+        }
+      }
+    }
+
+    return result;
+  };
+
+  const completeQuiz = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      // Get user ID from local storage
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        console.error("User ID not found in local storage");
+        return;
+      }
+
+      // Get all selected activities including ball sports
+      const selectedActivitiesWithBall = getSelectedActivitiesWithBall();
+
+      // Prepare the data for API
+      const quizData = {
+        user_name: userId,
+        age: getAgeGroupKey(ageGroup),
+        group_style: getGroupSportTypeKey(sportType),
+        activities: getActivityKeys(selectedActivitiesWithBall),
+        city: "",
+        district: "",
+        sport_interests: [],
+      };
+
+      // Send the data to the external API
+      const response = await externalApi.post(
+        `/users/update/${userId}`,
+        quizData,
+      );
+
+      console.log("Quiz data submitted successfully:", response);
+      setApiResponse(response);
+
+      // Store the response in sessionStorage so the suggestion page can access it
+      sessionStorage.setItem("quizApiResponse", JSON.stringify(response));
+
+      // Redirect to suggestion page
+      router.push("/suggestion");
+    } catch (error) {
+      console.error("Failed to submit quiz data:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSelectSportType = (value: string) => {
@@ -175,7 +281,11 @@ export default function OnboardingPage() {
                 Hvala na odgovorima!
               </h2>
               <p className="text-base font-medium text-white/80">
-                Vaši odgovori su uspješno zabilježeni.
+                {isSubmitting
+                  ? "Obrađujemo vaše odgovore..."
+                  : apiResponse
+                    ? "Vaši odgovori su uspješno zabilježeni. Preusmjeravamo vas na prijedloge..."
+                    : "Vaši odgovori su zabilježeni."}
               </p>
               <div className="mt-6 rounded-lg bg-[#45275A]/60 p-6 text-left">
                 <h3 className="mb-4 text-xl font-bold text-white">
