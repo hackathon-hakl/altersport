@@ -4,6 +4,9 @@ import { useParams } from "next/navigation";
 import { useTeam } from "@/hooks/queries/useTeams";
 import Image from "next/image";
 import Loader from "@/components/ui/loader";
+import TitleHeader from "@/components/landing-page/title-header";
+import Carousel from "@/components/landing-page/carousel";
+import JoinBanner from "@/components/landing-page/join-banner";
 
 export default function ClubPage() {
   const params = useParams();
@@ -29,15 +32,39 @@ export default function ClubPage() {
     );
   }
 
+  const matchItems = [
+    { variant: "upcoming" as const },
+    { isFavorite: false, variant: "upcoming" as const },
+    { variant: "result" as const },
+    { variant: "result" as const },
+    { variant: "upcoming" as const },
+    { isFavorite: false, variant: "upcoming" as const },
+    { variant: "result" as const },
+    { variant: "result" as const },
+  ];
+
   return (
-    <div className="">
-      <Image
-        src={"/placeholder.svg"}
-        alt={"banner"}
-        width={100}
-        height={150}
-        className="absolute top-0 left-0 w-full"
-      />
+    <div className="flex flex-col gap-10">
+      <div className="relative h-full">
+        <Image
+          src={"/placeholder.svg"}
+          alt={"banner"}
+          width={1920}
+          height={250}
+          className="w-full object-cover"
+        />
+        <div className="absolute -bottom-18 left-0 w-full translate-y-1/2 transform">
+          <div className="px-8 py-3">
+            <TitleHeader />
+          </div>
+        </div>
+      </div>
+      <div className="mt-44 w-full bg-[#070314] px-8 py-3">
+        <div className="grid grid-cols-[75%_25%] gap-6">
+          <Carousel items={matchItems} />
+          <JoinBanner />
+        </div>
+      </div>
     </div>
   );
 }

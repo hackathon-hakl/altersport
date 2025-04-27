@@ -14,4 +14,17 @@ export const apiRoutes = {
     sports: "/airtable/sports",
     teams: "/airtable/teams",
   },
+
+  /**
+   * External API routes
+   */
+  users: {
+    base: "/users",
+    getAll: "/users",
+    getById: (id: string | number) => `/users/${id}`,
+    create: "/users",
+    update: (id: string | number) => `/users/${id}`,
+    delete: (id: string | number) => `/users/${id}`,
+    initialize: (id: string | number) => `/users/initialize/${id}`,
+  },
 };

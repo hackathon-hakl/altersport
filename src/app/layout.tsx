@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import { QueryProvider } from "@/providers/QueryProvider";
 import UuidManager from "@/components/UuidManager";
+import UserInitializer from "@/components/UserInitializer";
 
 export const metadata: Metadata = {
   title: "Altersports",
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body>
         <QueryProvider>
           <UuidManager />
+          <UserInitializer />
           {children}
         </QueryProvider>
       </body>

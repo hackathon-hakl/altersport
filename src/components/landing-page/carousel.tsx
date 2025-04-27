@@ -112,7 +112,7 @@ export default function Carousel({
   const displayItems = items.length > 0 ? items : defaultItems;
 
   return (
-    <div className="flex w-full flex-col gap-6 overflow-x-hidden">
+    <div className="flex h-full w-full flex-col gap-6 overflow-x-hidden">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold text-white">{title}</h2>
         <div className="flex gap-2">
@@ -138,7 +138,7 @@ export default function Carousel({
       <div className="relative w-full overflow-hidden">
         <div
           ref={carouselRef}
-          className="no-scrollbar flex gap-6 overflow-x-auto scroll-smooth pb-4"
+          className="no-scrollbar flex gap-6 overflow-x-auto scroll-smooth"
           style={{ width: "100%", maxWidth: "100%" }}
         >
           {displayItems.map((itemProps, index) =>
