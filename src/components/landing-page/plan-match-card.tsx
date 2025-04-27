@@ -10,7 +10,12 @@ function TeamDisplay({ name, logoUrl }: TeamProps) {
   return (
     <div className="flex h-full w-32 flex-col items-center justify-between gap-2">
       <div className="relative size-12">
-        <Image src={logoUrl} alt={name} fill className="object-contain" />
+        <Image
+          src={logoUrl || "/placeholder.svg"}
+          alt={name}
+          fill
+          className="object-contain"
+        />
       </div>
       <h3 className="font-regular mt-1.5 max-w-full text-center text-xs text-white">
         {name}
@@ -19,7 +24,7 @@ function TeamDisplay({ name, logoUrl }: TeamProps) {
   );
 }
 
-interface PlanMatchCardProps {
+export interface PlanMatchCardProps {
   variant: "upcoming" | "finished";
   homeTeam: {
     name: string;
@@ -31,6 +36,8 @@ interface PlanMatchCardProps {
   };
   homeTeamResult?: number;
   awayTeamResult?: number;
+  matchDate?: string;
+  matchTime?: string;
 }
 
 export default function PlanMatchCard({
@@ -39,12 +46,16 @@ export default function PlanMatchCard({
   awayTeam,
   homeTeamResult = 0,
   awayTeamResult = 0,
+  matchDate,
+  matchTime,
 }: PlanMatchCardProps) {
   return (
     <div className="flex items-center justify-between rounded-2xl bg-[#0E0C28] p-4">
       <div className="flex flex-col gap-1">
-        <p className="text-base font-bold text-white">SC Savica · 18:30</p>
-        <p className="text-sm text-white/80">11.9.2024.</p>
+        <p className="text-base font-bold text-white">
+          {homeTeam.name} · {matchTime || "TBD"}
+        </p>
+        <p className="text-sm text-white/80">{matchDate || "Date TBD"}</p>
       </div>
       <div className="flex items-center gap-10">
         <div className="flex items-stretch">

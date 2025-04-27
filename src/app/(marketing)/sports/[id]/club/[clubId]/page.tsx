@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useTeam } from "@/hooks/queries/useTeams";
 import { useMatches } from "@/hooks/queries/useMatches";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Loader from "@/components/ui/loader";
 import TitleHeader from "@/components/landing-page/title-header";
@@ -11,6 +11,7 @@ import Carousel from "@/components/landing-page/carousel";
 import JoinBanner from "@/components/landing-page/join-banner";
 import Results from "@/components/landing-page/results";
 import Ranking from "@/components/landing-page/ranking";
+import type { MatchRecord } from "@/lib/services/airtable";
 
 export default function ClubPage() {
   const params = useParams();
@@ -23,17 +24,19 @@ export default function ClubPage() {
     error: clubError,
   } = useTeam(clubId as string);
   const { data: matches, isLoading: matchesLoading } = useMatches();
+  const [clubMatches, setClubMatches] = useState<MatchRecord[]>([]);
 
   useEffect(() => {
     if (matches && club) {
       // Filter matches where this club is either home or away team
-      const clubMatches = matches.filter(
+      const filteredMatches = matches.filter(
         (match) =>
           (match.homeTeam && match.homeTeam.includes(club.id)) ||
           (match.awayTeam && match.awayTeam.includes(club.id)),
       );
 
-      console.log("Matches for current club:", clubMatches);
+      console.log("Matches for current club:", filteredMatches);
+      setClubMatches(filteredMatches);
     }
   }, [matches, club]);
 
@@ -91,7 +94,7 @@ export default function ClubPage() {
           <JoinBanner />
         </div>
         <div className="grid grid-cols-2 gap-6">
-          <Results />
+          <Results clubMatches={clubMatches} currentClubId={club.id} />
           <Ranking />
         </div>
       </div>

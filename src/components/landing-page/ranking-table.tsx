@@ -145,7 +145,7 @@ const RankingTable: React.FC = () => {
   };
 
   return (
-    <div className="no-scrollbar max-h-[442px] w-full overflow-y-auto rounded-lg text-white">
+    <div className="no-scrollbar max-h-[460px] w-full overflow-y-auto rounded-lg text-white">
       <div className="w-full">
         <div className="mb-2 grid grid-cols-3 px-4 py-3 text-sm text-white">
           <div className="text-left font-bold">Klub</div>
