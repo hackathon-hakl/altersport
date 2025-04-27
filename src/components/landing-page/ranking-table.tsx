@@ -7,6 +7,7 @@ import type { TeamRecord } from "@/lib/services/airtable";
 
 interface RankingTableProps {
   clubId?: string;
+  clubIds?: string[];
   leagueId?: string;
 }
 
@@ -16,15 +17,31 @@ interface TeamWithRankingData extends TeamRecord {
   recentResults: ("win" | "loss" | "draw" | "none")[];
 }
 
-const RankingTable: React.FC<RankingTableProps> = ({ clubId, leagueId }) => {
+const RankingTable: React.FC<RankingTableProps> = ({
+  clubId,
+  clubIds,
+  leagueId,
+}) => {
   const [rankedTeams, setRankedTeams] = useState<TeamWithRankingData[]>([]);
+
+  // Support both single clubId and array of clubIds for backward compatibility
+  const allClubIds = clubId
+    ? clubIds
+      ? [...clubIds, clubId]
+      : [clubId]
+    : clubIds || [];
+
+  // Get first club ID for category detection (if any)
+  const firstClubId = allClubIds.length > 0 ? allClubIds[0] : "";
+
   const { data: currentTeam, isLoading: currentTeamLoading } = useTeam(
-    clubId || "",
+    firstClubId || "",
   );
 
   // Handle different ways of getting the category based on clubId or leagueId
   const categoryId = leagueId || currentTeam?.category?.[0] || "";
-  const isLoading = !!clubId ? currentTeamLoading : false;
+  const isLoading =
+    allClubIds.length > 0 && !leagueId ? currentTeamLoading : false;
 
   const { data: categoryTeams, isLoading: categoryTeamsLoading } =
     useTeamsByCategory(categoryId);
@@ -102,6 +119,24 @@ const RankingTable: React.FC<RankingTableProps> = ({ clubId, leagueId }) => {
     }
   };
 
+  // Helper function to check if team is one of the highlighted teams
+  const isHighlightedTeam = (teamId: string) => {
+    return allClubIds.includes(teamId);
+  };
+
+  // Define bg color classes for highlighted teams
+  const getTeamBgClass = (teamId: string, index: number) => {
+    if (!isHighlightedTeam(teamId)) return "bg-[#0E0C28]";
+
+    // If we have multiple teams to highlight, use different colors
+    if (allClubIds.length > 1) {
+      const teamIndex = allClubIds.indexOf(teamId);
+      return teamIndex === 0 ? "bg-[#2F063B]" : "bg-[#063B37]"; // First team purple, second team teal
+    }
+
+    return "bg-[#2F063B]"; // Default highlight color
+  };
+
   if (isLoading || categoryTeamsLoading) {
     return (
       <div className="flex h-[460px] w-full items-center justify-center">
@@ -137,7 +172,7 @@ const RankingTable: React.FC<RankingTableProps> = ({ clubId, leagueId }) => {
           {rankedTeams.map((team, idx) => (
             <div
               key={idx}
-              className={`grid grid-cols-3 rounded-2xl bg-[#0E0C28] px-4 py-3 transition-colors ${team.id === clubId ? "bg-[#2F063B]" : ""}`}
+              className={`grid grid-cols-3 rounded-2xl px-4 py-3 transition-colors ${getTeamBgClass(team.id, idx)}`}
             >
               <div className="my-auto">
                 <div className="flex items-center">

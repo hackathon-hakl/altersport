@@ -9,6 +9,7 @@ import { useSport } from "@/hooks/queries/useSports";
 import MatchCardBig from "@/components/landing-page/match-card-big";
 import Loader from "@/components/ui/loader";
 import { useMemo } from "react";
+import Ranking from "@/components/landing-page/ranking";
 
 export default function MatchPage() {
   const params = useParams();
@@ -67,6 +68,9 @@ export default function MatchPage() {
     );
   }
 
+  // Create an array of team IDs to highlight in the ranking table
+  const teamIds = [homeTeamId, awayTeamId].filter(Boolean) as string[];
+
   return (
     <div className="flex flex-col gap-10">
       <h1 className="pt-10 text-4xl font-bold text-white">
@@ -74,6 +78,7 @@ export default function MatchPage() {
       </h1>
       <div className="grid grid-cols-[30%_70%] gap-6">
         {matchData && <MatchCardBig {...matchData} />}
+        <Ranking clubIds={teamIds} leagueId={leagueId} />
       </div>
     </div>
   );
