@@ -6,10 +6,14 @@ import { useTeam } from "@/hooks/queries/useTeams";
 import { useLocation } from "@/hooks/queries/useLocations";
 import { useKategorije } from "@/hooks/queries/useKategorije";
 import { useSport } from "@/hooks/queries/useSports";
+import { useGeocode } from "@/hooks/use-geocode";
 import MatchCardBig from "@/components/landing-page/match-card-big";
 import Loader from "@/components/ui/loader";
 import { useMemo } from "react";
 import Ranking from "@/components/landing-page/ranking";
+import MapsMatch from "@/components/landing-page/maps-match";
+import Carousel from "@/components/landing-page/carousel";
+import { tournamentItems } from "@/utils/mockData";
 
 export default function MatchPage() {
   const params = useParams();
@@ -29,6 +33,14 @@ export default function MatchPage() {
   const { data: location } = useLocation(locationId || "");
   const { data: allLeagues } = useKategorije();
   const { data: sport } = useSport(sportId || "");
+
+  // Get geocoded coordinates for the location address
+  const {
+    lat,
+    lng,
+    success: geocodeSuccess,
+    isLoading: geocodeLoading,
+  } = useGeocode(location?.address || "");
 
   // Find the league from all leagues
   const league = useMemo(() => {
@@ -60,7 +72,27 @@ export default function MatchPage() {
     };
   }, [match, homeTeam, awayTeam, location, sport]);
 
-  if (isLoading) {
+  // Prepare location data for the map
+  const locationData = useMemo(() => {
+    if (!location) return null;
+
+    return {
+      locationName: location.venueName || "Match Venue",
+      locationCoordinates: geocodeSuccess
+        ? {
+            lat,
+            lng,
+          }
+        : {
+            // Default coordinates for Zagreb if geocoding fails
+            lat: 45.815399,
+            lng: 15.966568,
+          },
+      locationImageUrl: location.photo?.[0]?.url,
+    };
+  }, [location, lat, lng, geocodeSuccess]);
+
+  if (isLoading || geocodeLoading) {
     return (
       <div className="flex h-full min-h-[50vh] w-full items-center justify-center">
         <Loader />
@@ -80,6 +112,16 @@ export default function MatchPage() {
         {matchData && <MatchCardBig {...matchData} />}
         <Ranking clubIds={teamIds} leagueId={leagueId} />
       </div>
+      <MapsMatch
+        locationName={locationData?.locationName}
+        locationCoordinates={locationData?.locationCoordinates}
+        locationImageUrl={locationData?.locationImageUrl}
+      />
+      <Carousel
+        variant="tournament"
+        title="Otvorena natjecanja"
+        items={tournamentItems}
+      />
     </div>
   );
 }
