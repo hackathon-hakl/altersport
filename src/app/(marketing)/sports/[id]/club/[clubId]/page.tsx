@@ -95,7 +95,7 @@ export default function ClubPage() {
         </div>
         <div className="grid grid-cols-2 gap-6">
           <Results clubMatches={clubMatches} currentClubId={club.id} />
-          <Ranking />
+          <Ranking clubId={club.id} />
         </div>
       </div>
     </div>

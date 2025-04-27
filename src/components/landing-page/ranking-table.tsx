@@ -1,121 +1,73 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Check, X, Slash } from "lucide-react";
+import Loader from "@/components/ui/loader";
+import { useTeam, useTeamsByCategory } from "@/hooks/queries/useTeams";
+import type { TeamRecord } from "@/lib/services/airtable";
 
-interface RankingTeam {
+interface RankingTableProps {
+  clubId?: string;
+}
+
+interface TeamWithRankingData extends TeamRecord {
   position: number;
-  logo: string;
-  name: string;
   played: number;
-  wins: number;
-  draws: number;
-  losses: number;
-  points: number;
   recentResults: ("win" | "loss" | "draw" | "none")[];
 }
 
-const RankingTable: React.FC = () => {
-  const teams: RankingTeam[] = [
-    {
-      position: 1,
-      logo: "https://v5.airtableusercontent.com/v3/u/40/40/1745719200000/publEzWATHLITQJ_GuLtEA/HOlRa5tzJU9uHcsj13e6CKNlyCt2XQFu9t8-wuT-Pb5tHTr3oa4peUdnFC1n8N-L-VrCvvbbj3WEX92lgnYjmKY5GmkCsNhO15SOweHAbe25i548vE5NtQVJ18i1llwL9UzZC3tFSqNHuFBb74K9Dg/zO7uEp7SaJNqzZQDMGOQDU8tMHckMeCubkiPl422tSo",
-      name: "NK Botinec",
-      played: 12,
-      wins: 14,
-      draws: 0,
-      losses: 4,
-      points: 48,
-      recentResults: ["win", "win", "none", "none", "none"],
-    },
-    {
-      position: 1,
-      logo: "/team-logos/nk-botinec.png",
-      name: "NK Botinec",
-      played: 12,
-      wins: 14,
-      draws: 0,
-      losses: 4,
-      points: 48,
-      recentResults: ["win", "loss", "draw", "none", "none"],
-    },
-    {
-      position: 1,
-      logo: "/team-logos/nk-botinec.png",
-      name: "NK Botinec",
-      played: 12,
-      wins: 14,
-      draws: 0,
-      losses: 4,
-      points: 48,
-      recentResults: ["none", "none", "none", "none", "none"],
-    },
-    {
-      position: 1,
-      logo: "/team-logos/nk-botinec.png",
-      name: "NK Botinec",
-      played: 12,
-      wins: 14,
-      draws: 0,
-      losses: 4,
-      points: 48,
-      recentResults: ["none", "none", "none", "none", "none"],
-    },
-    {
-      position: 1,
-      logo: "/team-logos/nk-botinec.png",
-      name: "NK Botinec",
-      played: 12,
-      wins: 14,
-      draws: 0,
-      losses: 4,
-      points: 48,
-      recentResults: ["none", "none", "none", "none", "none"],
-    },
-    {
-      position: 1,
-      logo: "/team-logos/nk-botinec.png",
-      name: "NK Botinec",
-      played: 12,
-      wins: 14,
-      draws: 0,
-      losses: 4,
-      points: 48,
-      recentResults: ["none", "none", "none", "none", "none"],
-    },
-    {
-      position: 1,
-      logo: "/team-logos/nk-botinec.png",
-      name: "NK Botinec",
-      played: 12,
-      wins: 14,
-      draws: 0,
-      losses: 4,
-      points: 48,
-      recentResults: ["none", "none", "none", "none", "none"],
-    },
-    {
-      position: 1,
-      logo: "/team-logos/nk-botinec.png",
-      name: "NK Botinec",
-      played: 12,
-      wins: 14,
-      draws: 0,
-      losses: 4,
-      points: 48,
-      recentResults: ["none", "none", "none", "none", "none"],
-    },
-    {
-      position: 1,
-      logo: "/team-logos/nk-botinec.png",
-      name: "NK Botinec",
-      played: 12,
-      wins: 14,
-      draws: 0,
-      losses: 4,
-      points: 48,
-      recentResults: ["none", "none", "none", "none", "none"],
-    },
-  ];
+const RankingTable: React.FC<RankingTableProps> = ({ clubId }) => {
+  const [rankedTeams, setRankedTeams] = useState<TeamWithRankingData[]>([]);
+  const { data: currentTeam, isLoading: currentTeamLoading } = useTeam(
+    clubId || "",
+  );
+  const { data: categoryTeams, isLoading: categoryTeamsLoading } =
+    useTeamsByCategory(currentTeam?.category?.[0] || "");
+
+  useEffect(() => {
+    if (categoryTeams && categoryTeams.length > 0) {
+      // Process teams to add ranking data
+      const teamsWithRanking = categoryTeams
+        .map((team) => {
+          // Calculate played matches
+          const played =
+            (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
+
+          // Generate random recent results for demo
+          // In a real app, this would come from match history
+          const recentResults: ("win" | "loss" | "draw" | "none")[] = [];
+          const resultTypes = ["win", "loss", "draw"] as const;
+          for (let i = 0; i < 5; i++) {
+            if (played > i) {
+              // Ensure index is within bounds and type is correct
+              const randomIndex = Math.floor(
+                Math.random() * resultTypes.length,
+              ) as 0 | 1 | 2;
+              recentResults.push(resultTypes[randomIndex]);
+            } else {
+              recentResults.push("none");
+            }
+          }
+
+          return {
+            ...team,
+            position: 0, // Will be calculated below
+            played,
+            recentResults,
+          };
+        })
+        // Sort by points descending
+        .sort((a, b) => (b.points || 0) - (a.points || 0));
+
+      // Assign positions after sorting
+      teamsWithRanking.forEach((team, index) => {
+        team.position = index + 1;
+      });
+
+      setRankedTeams(teamsWithRanking);
+    }
+  }, [categoryTeams]);
+
+  console.log(currentTeam);
 
   const getResultIcon = (result: "win" | "loss" | "draw" | "none") => {
     switch (result) {
@@ -144,6 +96,22 @@ const RankingTable: React.FC = () => {
     }
   };
 
+  if (currentTeamLoading || categoryTeamsLoading) {
+    return (
+      <div className="flex h-[460px] w-full items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+
+  if (!rankedTeams || rankedTeams.length === 0) {
+    return (
+      <div className="flex h-[460px] w-full items-center justify-center text-white">
+        <p>Nema dostupnih podataka za tablicu</p>
+      </div>
+    );
+  }
+
   return (
     <div className="no-scrollbar max-h-[460px] w-full overflow-y-auto rounded-lg text-white">
       <div className="w-full">
@@ -160,21 +128,23 @@ const RankingTable: React.FC = () => {
         </div>
 
         <div className="space-y-1">
-          {teams.map((team, idx) => (
+          {rankedTeams.map((team, idx) => (
             <div
               key={idx}
-              className="grid grid-cols-3 rounded-2xl bg-[#0E0C28] px-4 py-3 transition-colors active:bg-[#2F063B]"
+              className={`grid grid-cols-3 rounded-2xl bg-[#0E0C28] px-4 py-3 transition-colors ${team.id === clubId ? "bg-[#2F063B]" : ""}`}
             >
               <div className="my-auto">
                 <div className="flex items-center">
-                  <div className="w-4 text-lg font-bold">{team.position}</div>
+                  <div className="w-8 text-lg font-bold">{team.position}</div>
                   <div className="mr-3 flex items-center justify-center">
                     <Image
-                      src={team.logo}
+                      src={
+                        (team.logo && team.logo[0]?.url) || "/placeholder.svg"
+                      }
                       alt={team.name}
                       width={42}
                       height={42}
-                      className="size-10 object-contain"
+                      className="mr-2 size-10 object-contain"
                     />
                   </div>
                   <span className="font-medium">{team.name}</span>
@@ -182,12 +152,20 @@ const RankingTable: React.FC = () => {
               </div>
               <div className="my-auto">
                 <div className="item flex justify-between space-x-1 font-medium">
-                  <span className="w-6 text-center">{team.played}</span>
-                  <span className="w-6 text-center">{team.wins}</span>
-                  <span className="w-6 text-center">{team.draws}</span>
-                  <span className="w-6 text-center">{team.losses}</span>
+                  <span className="w-6 text-center">
+                    {team.played.toFixed(0)}
+                  </span>
+                  <span className="w-6 text-center">
+                    {team.wins.toFixed(0)}
+                  </span>
+                  <span className="w-6 text-center">
+                    {team.draws.toFixed(0)}
+                  </span>
+                  <span className="w-6 text-center">
+                    {team.losses.toFixed(0)}
+                  </span>
                   <span className="w-6 text-center font-bold">
-                    {team.points}
+                    {team.points.toFixed(0)}
                   </span>
                 </div>
               </div>

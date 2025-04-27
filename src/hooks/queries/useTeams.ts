@@ -32,3 +32,17 @@ export function useTeam(id: string) {
     },
   );
 }
+
+/**
+ * Hook for fetching Teams by category ID from Airtable
+ */
+export function useTeamsByCategory(categoryId: string) {
+  return useQuery<TeamRecord[]>(
+    [...queryKeys.airtable.teams, "category", categoryId],
+    () => api.get(`${apiRoutes.airtable.teams}?categoryId=${categoryId}`),
+    {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      enabled: !!categoryId, // Only run the query if we have a category ID
+    },
+  );
+}

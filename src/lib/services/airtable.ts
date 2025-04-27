@@ -57,9 +57,14 @@ export interface TeamRecord {
       };
     };
   }[];
+  category: string[];
   address: string;
   website: string;
   sport: string[];
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
 }
 
 export interface MatchRecord {
@@ -294,9 +299,14 @@ export async function getTeam(id: string): Promise<TeamRecord> {
       id: record.id,
       name: record.get("Team Name") as string,
       logo: record.get("Team Logo") as TeamRecord["logo"],
+      category: record.get("Kategorija") as string[],
       sport: record.get("Sport") as string[],
       address: record.get("Address") as string,
       website: record.get("Website") as string,
+      wins: record.get("Wins") as number,
+      losses: record.get("Losses") as number,
+      draws: record.get("Draws") as number,
+      points: record.get("Total Points") as number,
     };
   } catch (error) {
     console.error("Error fetching Team from Airtable:", error);
@@ -320,9 +330,14 @@ export async function getTeams(): Promise<TeamRecord[]> {
         id: record.id,
         name: record.get("Team Name") as string,
         logo: record.get("Team Logo") as TeamRecord["logo"],
+        category: record.get("Kategorija") as string[],
         sport: record.get("Sport") as string[],
         address: record.get("Address") as string,
         website: record.get("Website") as string,
+        wins: record.get("Wins") as number,
+        losses: record.get("Losses") as number,
+        draws: record.get("Draws") as number,
+        points: record.get("Total Points") as number,
       };
     });
   } catch (error) {
