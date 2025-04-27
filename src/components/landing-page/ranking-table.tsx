@@ -7,6 +7,7 @@ import type { TeamRecord } from "@/lib/services/airtable";
 
 interface RankingTableProps {
   clubId?: string;
+  leagueId?: string;
 }
 
 interface TeamWithRankingData extends TeamRecord {
@@ -15,13 +16,18 @@ interface TeamWithRankingData extends TeamRecord {
   recentResults: ("win" | "loss" | "draw" | "none")[];
 }
 
-const RankingTable: React.FC<RankingTableProps> = ({ clubId }) => {
+const RankingTable: React.FC<RankingTableProps> = ({ clubId, leagueId }) => {
   const [rankedTeams, setRankedTeams] = useState<TeamWithRankingData[]>([]);
   const { data: currentTeam, isLoading: currentTeamLoading } = useTeam(
     clubId || "",
   );
+
+  // Handle different ways of getting the category based on clubId or leagueId
+  const categoryId = leagueId || currentTeam?.category?.[0] || "";
+  const isLoading = !!clubId ? currentTeamLoading : false;
+
   const { data: categoryTeams, isLoading: categoryTeamsLoading } =
-    useTeamsByCategory(currentTeam?.category?.[0] || "");
+    useTeamsByCategory(categoryId);
 
   useEffect(() => {
     if (categoryTeams && categoryTeams.length > 0) {
@@ -96,7 +102,7 @@ const RankingTable: React.FC<RankingTableProps> = ({ clubId }) => {
     }
   };
 
-  if (currentTeamLoading || categoryTeamsLoading) {
+  if (isLoading || categoryTeamsLoading) {
     return (
       <div className="flex h-[460px] w-full items-center justify-center">
         <Loader />

@@ -7,11 +7,13 @@ import Loader from "@/components/ui/loader";
 interface ResultsProps {
   clubMatches: MatchRecord[];
   currentClubId?: string;
+  leagueView?: boolean;
 }
 
 export default function Results({
   clubMatches = [],
   currentClubId,
+  leagueView = false,
 }: ResultsProps) {
   const [activeTab, setActiveTab] = useState("all");
   const [filteredMatches, setFilteredMatches] = useState<MatchRecord[]>([]);

@@ -8,7 +8,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { id } = useParams();
   const pathname = usePathname();
   const sportId = Array.isArray(id) ? id[0] : (id as string);
-  const isClubPage = pathname.includes("/club/");
+  const isClubPage =
+    pathname.includes("/club/") || pathname.includes("/league/");
 
   return (
     <SidebarProvider>

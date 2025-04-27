@@ -6,6 +6,7 @@ import { useQuery } from "./useQuery";
 import { useMutation } from "./useMutation";
 import { useQueryClient } from "@tanstack/react-query";
 import type { UseMutationResult } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 /**
  * Hook for fetching all Matches from Airtable
@@ -19,6 +20,30 @@ export function useMatches() {
       staleTime: 5 * 60 * 1000, // 5 minutes
     },
   );
+}
+
+/**
+ * Hook for fetching matches filtered by league ID
+ * @param leagueId League ID to filter matches by
+ */
+export function useMatchesByLeague(leagueId?: string) {
+  const { data: allMatches, isLoading, error } = useMatches();
+
+  // Filter matches by league if a leagueId is provided
+  const filteredMatches = useMemo(() => {
+    if (!allMatches) return [];
+    if (!leagueId) return allMatches;
+
+    return allMatches.filter(
+      (match) => match.kategorija && match.kategorija.includes(leagueId),
+    );
+  }, [allMatches, leagueId]);
+
+  return {
+    data: filteredMatches,
+    isLoading,
+    error,
+  };
 }
 
 /**

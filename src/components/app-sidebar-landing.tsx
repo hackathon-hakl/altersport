@@ -169,7 +169,9 @@ export function AppSidebarLanding({
                           filteredLeagues.map((league) => (
                             <SidebarMenuItem key={league.id}>
                               <SidebarMenuButton asChild variant="landing">
-                                <a href={`/leagues/${league.id}`}>
+                                <a
+                                  href={`/sports/${selectedSport?.id}/league/${league.id}`}
+                                >
                                   <Trophy size={20} />
                                   {league.name}
                                 </a>
