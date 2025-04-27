@@ -5,7 +5,7 @@ export default function JoinBanner() {
     <div className="flex flex-col justify-between overflow-hidden rounded-2xl bg-[url('/connect.svg')] bg-cover bg-center px-5 py-6">
       <div className="flex flex-col gap-3">
         <h2 className="text-4xl font-bold text-white">Pridruži nam se!</h2>
-        <p className="text-base font-normal text-white">
+        <p className="text-base font-medium text-white">
           Prijavi se putem obrasca i započni svoje sportsko putovanje s nama. Za
           tebe imamo besplatni probni trening.
         </p>

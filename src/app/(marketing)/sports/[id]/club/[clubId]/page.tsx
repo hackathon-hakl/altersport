@@ -7,6 +7,7 @@ import Loader from "@/components/ui/loader";
 import TitleHeader from "@/components/landing-page/title-header";
 import Carousel from "@/components/landing-page/carousel";
 import JoinBanner from "@/components/landing-page/join-banner";
+import Results from "@/components/landing-page/results";
 
 export default function ClubPage() {
   const params = useParams();
@@ -59,10 +60,13 @@ export default function ClubPage() {
           </div>
         </div>
       </div>
-      <div className="mt-44 w-full bg-[#070314] px-8 py-3">
+      <div className="mt-44 flex w-full flex-col gap-12 bg-[#070314] px-8 py-3">
         <div className="grid grid-cols-[75%_25%] gap-6">
           <Carousel items={matchItems} />
           <JoinBanner />
+        </div>
+        <div className="grid grid-cols-2 gap-6">
+          <Results />
         </div>
       </div>
     </div>
