@@ -28,6 +28,11 @@ export const MapLocationCard = ({
   const logoImage = location.imageUrl;
   const website = location.website;
 
+  // Get the first sport ID for the club (if available)
+  // The club page expects a sport ID, so we'll use the first one
+  const sportId =
+    location.sport && location.sport.length > 0 ? location.sport[0] : "default";
+
   return (
     <div className="absolute top-2 left-4 z-30 min-w-80">
       <div className="flex flex-col gap-6 rounded-md bg-[#13091B] p-4">
@@ -77,10 +82,12 @@ export const MapLocationCard = ({
         </div>
 
         <div className="mb-2 flex justify-end">
-          <Button className="bg-cta hover:bg-cta/80 w-fit rounded-full px-4 py-2 text-sm font-semibold text-white">
-            Pogledaj profil
-            <ArrowRight className="size-4" color="white" />
-          </Button>
+          <Link href={`/sports/${sportId}/club/${location.id}`}>
+            <Button className="bg-cta hover:bg-cta/80 w-fit rounded-full px-4 py-2 text-sm font-semibold text-white">
+              Pogledaj profil
+              <ArrowRight className="size-4" color="white" />
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
