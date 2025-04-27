@@ -154,6 +154,7 @@ export default function HomePage() {
                 date: formatDate(event.event_date),
                 isFavorite: false,
                 variant: "upcoming" as const,
+                id: event.event_id,
               };
             },
           );

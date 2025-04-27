@@ -1,7 +1,6 @@
 "use client";
 
 import { Star, ArrowUpRight } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -21,7 +20,6 @@ interface MatchProps {
   variant?: "result" | "upcoming";
   homeTeamResult?: string;
   awayTeamResult?: string;
-  id?: string;
 }
 
 function TeamDisplay({ name, logoUrl }: TeamProps) {
@@ -37,7 +35,7 @@ function TeamDisplay({ name, logoUrl }: TeamProps) {
   );
 }
 
-export default function MatchCard({
+export default function MatchCardBig({
   sport = "Nogomet",
   homeTeam = {
     name: "NK Kralj Tomislav",
@@ -56,7 +54,6 @@ export default function MatchCard({
   variant = "upcoming",
   homeTeamResult = "1",
   awayTeamResult = "2",
-  id = "default-match-id",
 }: Partial<MatchProps>) {
   const [favorite, setFavorite] = useState(isFavorite);
 
@@ -65,7 +62,7 @@ export default function MatchCard({
   };
 
   return (
-    <div className="flex min-h-60 min-w-80 flex-col justify-between rounded-2xl bg-gradient-to-r from-[#0E0C28] via-[#0E0C28] via-50% to-[#B8252A]/20 p-4">
+    <div className="flex min-h-96 min-w-80 flex-col justify-between rounded-2xl bg-gradient-to-r from-[#0E0C28] via-[#0E0C28] via-50% to-[#B8252A]/20 p-4">
       <div className="flex items-center justify-between">
         <p className="text-white">{sport}</p>
         <Star
@@ -97,14 +94,6 @@ export default function MatchCard({
           </p>
           <p className="text-base font-normal">{date}</p>
         </div>
-        <Link href={`/match/${id}`}>
-          <ArrowUpRight
-            size={48}
-            strokeWidth={0.8}
-            color="white"
-            className="cursor-pointer"
-          />
-        </Link>
       </div>
     </div>
   );
