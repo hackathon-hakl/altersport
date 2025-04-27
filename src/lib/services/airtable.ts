@@ -62,6 +62,23 @@ export interface TeamRecord {
   sport: string[];
 }
 
+export interface MatchRecord {
+  id: string;
+  matchTime: string;
+  sport: string[];
+  kategorija: string[];
+  matchDate: string;
+  location: string[];
+  homeTeam: string[];
+  awayTeam: string[];
+  homeTeamScore?: number;
+  awayTeamScore?: number;
+  matchResult?: string;
+  officials?: string[];
+  statistics?: string[];
+  tournaments?: string[];
+}
+
 /**
  * Fetch all Kategorije from Airtable
  */
@@ -279,5 +296,188 @@ export async function getTeams(): Promise<TeamRecord[]> {
   } catch (error) {
     console.error("Error fetching Teams from Airtable:", error);
     throw new Error("Failed to fetch Teams");
+  }
+}
+
+/**
+ * Fetch all Matches from Airtable
+ */
+export async function getMatches(): Promise<MatchRecord[]> {
+  try {
+    const records = await base("Događanje")
+      .select({
+        view: "Grid view",
+      })
+      .all();
+
+    return records.map((record) => {
+      return {
+        id: record.id,
+        matchTime: record.get("Match Time") as string,
+        sport: record.get("Sport") as string[],
+        kategorija: record.get("Kategorija") as string[],
+        matchDate: formatDate(record.get("Match Date") as string),
+        location: record.get("Location") as string[],
+        homeTeam: record.get("Home Team") as string[],
+        awayTeam: record.get("Away Team") as string[],
+        homeTeamScore: record.get("Home Team Score") as number,
+        awayTeamScore: record.get("Away Team Score") as number,
+        matchResult: record.get("Match Result") as string,
+        officials: record.get("Officials") as string[],
+        statistics: record.get("Statistics") as string[],
+        tournaments: record.get("Tournaments") as string[],
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching Matches from Airtable:", error);
+    throw new Error("Failed to fetch Matches");
+  }
+}
+
+/**
+ * Fetch a single Match record by ID from Airtable
+ */
+export async function getMatch(id: string): Promise<MatchRecord> {
+  try {
+    const record = await base("Događanje").find(id);
+
+    return {
+      id: record.id,
+      matchTime: record.get("Match Time") as string,
+      sport: record.get("Sport") as string[],
+      kategorija: record.get("Kategorija") as string[],
+      matchDate: formatDate(record.get("Match Date") as string),
+      location: record.get("Location") as string[],
+      homeTeam: record.get("Home Team") as string[],
+      awayTeam: record.get("Away Team") as string[],
+      homeTeamScore: record.get("Home Team Score") as number,
+      awayTeamScore: record.get("Away Team Score") as number,
+      matchResult: record.get("Match Result") as string,
+      officials: record.get("Officials") as string[],
+      statistics: record.get("Statistics") as string[],
+      tournaments: record.get("Tournaments") as string[],
+    };
+  } catch (error) {
+    console.error("Error fetching Match from Airtable:", error);
+    throw new Error("Failed to fetch Match");
+  }
+}
+
+/**
+ * Create a new Match in Airtable
+ */
+export async function createMatch(data: {
+  matchTime: string;
+  sport: string[];
+  kategorija: string[];
+  matchDate: string;
+  location: string[];
+  homeTeam: string[];
+  awayTeam: string[];
+  homeTeamScore?: number;
+  awayTeamScore?: number;
+  matchResult?: string;
+  officials?: string[];
+  statistics?: string[];
+  tournaments?: string[];
+}): Promise<MatchRecord> {
+  try {
+    const record = await base("Događanje").create({
+      "Match Time": data.matchTime,
+      Sport: data.sport,
+      Kategorija: data.kategorija,
+      "Match Date": data.matchDate,
+      Location: data.location,
+      "Home Team": data.homeTeam,
+      "Away Team": data.awayTeam,
+      "Home Team Score": data.homeTeamScore,
+      "Away Team Score": data.awayTeamScore,
+      "Match Result": data.matchResult,
+      Officials: data.officials,
+      Statistics: data.statistics,
+      Tournaments: data.tournaments,
+    });
+
+    return {
+      id: record.id,
+      matchTime: record.get("Match Time") as string,
+      sport: record.get("Sport") as string[],
+      kategorija: record.get("Kategorija") as string[],
+      matchDate: formatDate(record.get("Match Date") as string),
+      location: record.get("Location") as string[],
+      homeTeam: record.get("Home Team") as string[],
+      awayTeam: record.get("Away Team") as string[],
+      homeTeamScore: record.get("Home Team Score") as number,
+      awayTeamScore: record.get("Away Team Score") as number,
+      matchResult: record.get("Match Result") as string,
+      officials: record.get("Officials") as string[],
+      statistics: record.get("Statistics") as string[],
+      tournaments: record.get("Tournaments") as string[],
+    };
+  } catch (error) {
+    console.error("Error creating Match in Airtable:", error);
+    throw new Error("Failed to create Match");
+  }
+}
+
+/**
+ * Update an existing Match in Airtable
+ */
+export async function updateMatch(data: {
+  id: string;
+  matchTime?: string;
+  sport?: string[];
+  kategorija?: string[];
+  matchDate?: string;
+  location?: string[];
+  homeTeam?: string[];
+  awayTeam?: string[];
+  homeTeamScore?: number;
+  awayTeamScore?: number;
+  matchResult?: string;
+  officials?: string[];
+  statistics?: string[];
+  tournaments?: string[];
+}): Promise<MatchRecord> {
+  try {
+    const updateData: Record<string, any> = {};
+
+    if (data.matchTime) updateData["Match Time"] = data.matchTime;
+    if (data.sport) updateData["Sport"] = data.sport;
+    if (data.kategorija) updateData["Kategorija"] = data.kategorija;
+    if (data.matchDate) updateData["Match Date"] = data.matchDate;
+    if (data.location) updateData["Location"] = data.location;
+    if (data.homeTeam) updateData["Home Team"] = data.homeTeam;
+    if (data.awayTeam) updateData["Away Team"] = data.awayTeam;
+    if (data.homeTeamScore !== undefined)
+      updateData["Home Team Score"] = data.homeTeamScore;
+    if (data.awayTeamScore !== undefined)
+      updateData["Away Team Score"] = data.awayTeamScore;
+    if (data.matchResult) updateData["Match Result"] = data.matchResult;
+    if (data.officials) updateData["Officials"] = data.officials;
+    if (data.statistics) updateData["Statistics"] = data.statistics;
+    if (data.tournaments) updateData["Tournaments"] = data.tournaments;
+
+    const record = await base("Događanje").update(data.id, updateData);
+
+    return {
+      id: record.id,
+      matchTime: record.get("Match Time") as string,
+      sport: record.get("Sport") as string[],
+      kategorija: record.get("Kategorija") as string[],
+      matchDate: formatDate(record.get("Match Date") as string),
+      location: record.get("Location") as string[],
+      homeTeam: record.get("Home Team") as string[],
+      awayTeam: record.get("Away Team") as string[],
+      homeTeamScore: record.get("Home Team Score") as number,
+      awayTeamScore: record.get("Away Team Score") as number,
+      matchResult: record.get("Match Result") as string,
+      officials: record.get("Officials") as string[],
+      statistics: record.get("Statistics") as string[],
+      tournaments: record.get("Tournaments") as string[],
+    };
+  } catch (error) {
+    console.error("Error updating Match in Airtable:", error);
+    throw new Error("Failed to update Match");
   }
 }

@@ -3,7 +3,6 @@ export const queryKeys = {
     kategorije: ["airtable", "kategorije"],
     sports: ["airtable", "sports"],
     teams: ["airtable", "teams"],
+    matches: ["airtable", "matches"],
   },
-
-  // Add more query key categories here as needed
 };

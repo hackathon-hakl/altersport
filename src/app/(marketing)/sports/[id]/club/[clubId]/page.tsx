@@ -2,19 +2,42 @@
 
 import { useParams } from "next/navigation";
 import { useTeam } from "@/hooks/queries/useTeams";
+import { useMatches } from "@/hooks/queries/useMatches";
+import { useEffect } from "react";
 import Image from "next/image";
 import Loader from "@/components/ui/loader";
 import TitleHeader from "@/components/landing-page/title-header";
 import Carousel from "@/components/landing-page/carousel";
 import JoinBanner from "@/components/landing-page/join-banner";
 import Results from "@/components/landing-page/results";
+import Ranking from "@/components/landing-page/ranking";
 
 export default function ClubPage() {
   const params = useParams();
-  const clubId = Array.isArray(params.id) ? params.id[1] : params.id;
-  const { data: club, isLoading, error } = useTeam(clubId as string);
+  const clubId = Array.isArray(params.clubId)
+    ? params.clubId[0]
+    : params.clubId;
+  const {
+    data: club,
+    isLoading: clubLoading,
+    error: clubError,
+  } = useTeam(clubId as string);
+  const { data: matches, isLoading: matchesLoading } = useMatches();
 
-  if (isLoading) {
+  useEffect(() => {
+    if (matches && club) {
+      // Filter matches where this club is either home or away team
+      const clubMatches = matches.filter(
+        (match) =>
+          (match.homeTeam && match.homeTeam.includes(club.id)) ||
+          (match.awayTeam && match.awayTeam.includes(club.id)),
+      );
+
+      console.log("Matches for current club:", clubMatches);
+    }
+  }, [matches, club]);
+
+  if (clubLoading || matchesLoading) {
     return (
       <div className="flex h-full min-h-[50vh] w-full items-center justify-center">
         <Loader />
@@ -22,12 +45,14 @@ export default function ClubPage() {
     );
   }
 
-  if (error || !club) {
+  if (clubError || !club) {
     return (
       <div className="flex h-full min-h-[50vh] w-full flex-col items-center justify-center text-white">
         <h2 className="text-2xl font-semibold">Error loading club</h2>
         <p className="mt-2 text-white/70">
-          {error instanceof Error ? error.message : "Unable to load club data"}
+          {clubError instanceof Error
+            ? clubError.message
+            : "Unable to load club data"}
         </p>
       </div>
     );
@@ -67,6 +92,7 @@ export default function ClubPage() {
         </div>
         <div className="grid grid-cols-2 gap-6">
           <Results />
+          <Ranking />
         </div>
       </div>
     </div>

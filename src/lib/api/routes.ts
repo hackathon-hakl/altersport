@@ -13,6 +13,7 @@ export const apiRoutes = {
     kategorije: "/airtable/kategorije",
     sports: "/airtable/sports",
     teams: "/airtable/teams",
+    matches: "/airtable/matches",
   },
 
   /**

@@ -1,6 +1,6 @@
 import LandingTabs from "./landing-tabs";
 import { useState } from "react";
-
+import PlanMatchCard from "./plan-match-card";
 export default function Results() {
   const [activeTab, setActiveTab] = useState("all");
 
@@ -24,10 +24,42 @@ export default function Results() {
       />
 
       <div className="mt-4">
-        {activeTab === "all" && <div className="text-white">Svi rezultati</div>}
+        {activeTab === "all" && (
+          <div className="flex flex-col gap-4">
+            <PlanMatchCard
+              variant="finished"
+              homeTeam={{
+                name: "SC Savica",
+                logoUrl:
+                  "https://v5.airtableusercontent.com/v3/u/40/40/1745719200000/gqeqRt6P1ywUlRQcxQTJMQ/h_C8_ZQGNVL04aQ-vQgw3MCC5zQS0ATUsmjJspNqbBgQX7XmokztG-r_IVaGz9gZxlCFrRkXVsVBFSfe8hmOmJcaNYPL3N9C2BmDoCw9D5eQAL4DOFs09dHjO2B6FV0J1bzi8XdtP_euYnxq1V2UqA/ZQSIHQrGnIlufjC87OxlclLz4mQxz8nUg9EJcAcDOKk",
+              }}
+              awayTeam={{
+                name: "NK Studentski grad",
+                logoUrl:
+                  "https://v5.airtableusercontent.com/v3/u/40/40/1745719200000/gqeqRt6P1ywUlRQcxQTJMQ/h_C8_ZQGNVL04aQ-vQgw3MCC5zQS0ATUsmjJspNqbBgQX7XmokztG-r_IVaGz9gZxlCFrRkXVsVBFSfe8hmOmJcaNYPL3N9C2BmDoCw9D5eQAL4DOFs09dHjO2B6FV0J1bzi8XdtP_euYnxq1V2UqA/ZQSIHQrGnIlufjC87OxlclLz4mQxz8nUg9EJcAcDOKk",
+              }}
+              homeTeamResult={1}
+              awayTeamResult={1}
+            />
+          </div>
+        )}
 
         {activeTab === "upcoming" && (
-          <div className="text-white">Nadolazeći rezultati</div>
+          <div className="flex flex-col gap-4">
+            <PlanMatchCard
+              variant="upcoming"
+              homeTeam={{
+                name: "SC Savica",
+                logoUrl:
+                  "https://v5.airtableusercontent.com/v3/u/40/40/1745719200000/gqeqRt6P1ywUlRQcxQTJMQ/h_C8_ZQGNVL04aQ-vQgw3MCC5zQS0ATUsmjJspNqbBgQX7XmokztG-r_IVaGz9gZxlCFrRkXVsVBFSfe8hmOmJcaNYPL3N9C2BmDoCw9D5eQAL4DOFs09dHjO2B6FV0J1bzi8XdtP_euYnxq1V2UqA/ZQSIHQrGnIlufjC87OxlclLz4mQxz8nUg9EJcAcDOKk",
+              }}
+              awayTeam={{
+                name: "NK Studentski grad",
+                logoUrl:
+                  "https://v5.airtableusercontent.com/v3/u/40/40/1745719200000/gqeqRt6P1ywUlRQcxQTJMQ/h_C8_ZQGNVL04aQ-vQgw3MCC5zQS0ATUsmjJspNqbBgQX7XmokztG-r_IVaGz9gZxlCFrRkXVsVBFSfe8hmOmJcaNYPL3N9C2BmDoCw9D5eQAL4DOFs09dHjO2B6FV0J1bzi8XdtP_euYnxq1V2UqA/ZQSIHQrGnIlufjC87OxlclLz4mQxz8nUg9EJcAcDOKk",
+              }}
+            />
+          </div>
         )}
 
         {activeTab === "previous" && (

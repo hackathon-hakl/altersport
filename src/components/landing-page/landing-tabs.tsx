@@ -27,7 +27,7 @@ export default function LandingTabs({
   };
 
   return (
-    <div className="flex w-full border-b border-gray-800">
+    <div className="flex w-full">
       {tabs.map((tab) => (
         <button
           key={tab.id}
